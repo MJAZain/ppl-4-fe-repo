@@ -1,21 +1,22 @@
 // components/DataTable.jsx
 import React from "react";
+import ActionMenu from "./ActionMenu";
 
-function DataTable({ columns, data, showIndex = false }) {
+function DataTable({ columns, data, showIndex = false, onEdit, onDelete }) {
   return (
     <div className="overflow-x-auto rounded-lg shadow-md border">
       <table className="min-w-full text-sm border-collapse">
         <thead>
           <tr>
             {showIndex && (
-              <th className="px-4 py-3 border-b-2 border-black text-center font-bold text-[18px] leading-[24px] text-black font-[Open_Sans]">
+              <th className="px-4 py-3 border-b-4 border-black text-center font-bold text-[18px] leading-[24px] text-black font-[Open_Sans]">
                 No.
               </th>
             )}
             {columns.map((col) => (
               <th
                 key={col.accessor}
-                className="px-4 py-3 border-b-2 border-black text-center font-bold text-[18px] leading-[24px] text-black font-[Open_Sans]"
+                className="px-4 py-3 border-b-4 border-black text-center font-bold text-[18px] leading-[24px] text-black font-[Open_Sans]"
               >
                 {col.header}
               </th>
@@ -35,7 +36,14 @@ function DataTable({ columns, data, showIndex = false }) {
                   key={col.accessor}
                   className="px-4 py-3 border-b-2 border-black text-center text-[18px] leading-[24px] text-black font-[Open_Sans] font-normal"
                 >
-                  {row[col.accessor]}
+                  {col.isAction ? (
+                    <ActionMenu
+                      onEdit={() => onEdit?.(row)}
+                      onDelete={() => onDelete?.(row)}
+                    />
+                  ) : (
+                    row[col.accessor]
+                  )}
                 </td>
               ))}
             </tr>
@@ -45,5 +53,6 @@ function DataTable({ columns, data, showIndex = false }) {
     </div>
   );
 }
+
 
 export default DataTable;

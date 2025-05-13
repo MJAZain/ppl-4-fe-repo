@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Modal from "./modal";
 import InputField from "../inputField";
 import Button from "../buttonComp";
+import axios from "axios";
 
 const initialFormState = {
   nama: "",
@@ -25,16 +26,31 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
     setForm({ ...form, [key]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    const allFilled = Object.values(form).every((val) => val.trim() !== "");
-    if (!allFilled) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    onSubmit(form);
+  const handleSubmit = async () => {
+  const allFilled = Object.values(form).every((val) => val.toString().trim() !== "");
+  if (!allFilled) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  try {
+    await axios.post("/api/units", form, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    alert("Barang berhasil ditambahkan.");
     setForm(initialFormState);
     close();
-  };
+    onSubmit?.();
+  } catch (error) {
+    console.error("Error submitting barang:", error);
+    alert("Gagal menambahkan barang.");
+  }
+};
+
 
   const numericFields = ["stok", "hargaBeli", "hargaJual", "isi"];
 
@@ -57,8 +73,11 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
 
       </div>
       <div className="grid grid-cols-2 pr-5 max-h-[60vh] overflow-y-auto gap-5 py-5">
-        <Button onClick={close} className="bg-gray-200 text-black border-none">
-          Batal
+        <Button
+          onClick={() => setForm(initialFormState)}
+          className="bg-gray-200 text-black border-none"
+        >
+          Reset
         </Button>
         <Button onClick={handleSubmit}>Simpan</Button>
       </div>

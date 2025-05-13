@@ -14,7 +14,7 @@ const useLogin = () => {
     setError(null);
     setSuccess(null);
 
-    navigate("/master-barang");
+    navigate("/dashboard");
 
     try {
       const response = await fetch("/users/login", {
@@ -32,7 +32,7 @@ const useLogin = () => {
       }
 
       setSuccess("Login successful!");
-      navigate("/master-barang");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
