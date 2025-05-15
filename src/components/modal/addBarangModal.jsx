@@ -34,7 +34,7 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
   }
 
   try {
-    await axios.post("/api/units", form, {
+    await axios.post("/api/products", form, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "application/json",

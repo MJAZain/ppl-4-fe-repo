@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useBarangData from "../hooks/useBarangData";
 import useSearch from "../hooks/useSearch";
-import useUnitActions from "../hooks/useMasterAction";
+import useProductActions from "../hooks/useMasterAction";
 
 import ActionMenu from "../components/ActionMenu";
 import SearchBar from "../components/SearchBar";
@@ -19,7 +19,7 @@ function MasterBarangPage() {
   const [isEditOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  const { getUnitById, deleteUnit } = useUnitActions();
+  const { getProductById, deleteProduct } = useProductActions();
 
   useEffect(() => {
     setBarangList(data);
@@ -35,7 +35,7 @@ function MasterBarangPage() {
     if (!confirm) return;
 
     try {
-      await deleteUnit(id);
+      await deleteProduct(id);
       setBarangList((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       alert("Gagal menghapus data.");
@@ -54,18 +54,18 @@ function MasterBarangPage() {
   ]);
 
   const columns = [
-    { header: "Nama", accessor: "nama" },
-    { header: "SKU", accessor: "sku" },
-    { header: "Kategori", accessor: "kategori" },
-    { header: "Stok", accessor: "stok" },
-    { header: "Harga Beli", accessor: "hargaBeli" },
-    { header: "Harga Jual", accessor: "hargaJual" },
-    { header: "Kadaluarsa", accessor: "kadaluarsa" },
-    { header: "Isi", accessor: "isi" },
-    { header: "Merk", accessor: "merk" },
-    { header: "Lokasi", accessor: "lokasi" },
-    { header: "Satuan", accessor: "satuan" },
+    { header: "Nama", accessor: "name" },
+    { header: "SKU", accessor: "code" },
     { header: "Barcode", accessor: "barcode" },
+    { header: "Kategori", accessor: "category_id" },
+    { header: "Satuan", accessor: "unit_id" },
+    { header: "Isi", accessor: "package_content" },
+    { header: "Harga Beli", accessor: "purchase_price" },
+    { header: "Harga Jual", accessor: "selling_price" },
+    { header: "Harga Grosir", accessor: "wholesale_price" },
+    { header: "Stok Buffer", accessor: "stok_buffer" },
+    { header: "Lokasi", accessor: "storage_location" },
+    { header: "Merk", accessor: "brand" },
     {
       header: "Pilih Aksi",
       accessor: "actions",
@@ -88,20 +88,23 @@ function MasterBarangPage() {
   if (loading) return <div className="text-center mt-6">Loading...</div>;
 
   return (
-    <div className="p-0 m-0">
-
+    <div className="flex">
+      
       <Sidebar />
-
-      <div className="p-5 fixed">
+      
+      <div className="p-5 w-full">
+        <h1 className="text-2xl font-bold mb-6">Daftar Barang</h1>
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
-        <div className="flex gap-4 mb-4">
-          <Button onClick={() => setIsModalOpen(true)}>Tambah Barang</Button>
-          <Button>Stock Opname</Button>
-        </div>
+        <div className=" border-1 rounded-md border-gray-300 bg-white p-5">
+          <div className="flex gap-4 mb-4">
+            <Button onClick={() => setIsModalOpen(true)}>Tambah Barang</Button>
+            <Button>Stock Opname</Button>
+          </div>
 
         <DataTable columns={columns} data={filteredData} showIndex={true} />
-      </div>
+        </div>
+     </div>
       
 
       <AddBarangModal
@@ -113,7 +116,7 @@ function MasterBarangPage() {
       <EditBarangModal
         isOpen={isEditOpen}
         close={() => setEditOpen(false)}
-        unitId={editId}
+        productId={editId}
         onSuccess={handleEditSuccess}
       />
     </div>

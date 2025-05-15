@@ -5,18 +5,23 @@ import useLogin from "../hooks/useUser";
 import myImage from '../media/loginDecor.png';
 import '../styles/loginStyles.css';
 import Toast from "../components/toast";
+import { useEffect } from "react";
 
 function LoginPage() {
   const { email, setEmail, password, setPassword, loading, error, success, login } = useLogin();
   const [toast, setToast] = useState(null);
 
+  useEffect(() => {
+  if (success) {
+    setToast({ message: success, type: "success" });
+  }
+  if (error) {
+    setToast({ message: error, type: "error" });
+  }
+  }, [success, error]);
+
   const handleLogin = async () => {
     await login();
-    if (success) {
-      setToast({ message: success, type: "success" });
-    } else if (error) {
-      setToast({ message: error, type: "error" });
-    }
   };
 
   return (

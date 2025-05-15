@@ -19,17 +19,17 @@ const initialFormState = {
   barcode: "",
 };
 
-function EditBarangModal({ isOpen, close, unitId, onSuccess }) {
+function EditBarangModal({ isOpen, close, productId, onSuccess }) {
   const [form, setForm] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
 
   const numericFields = ["stok", "hargaBeli", "hargaJual", "isi"];
 
   useEffect(() => {
-    if (unitId) {
+    if (productId) {
       setLoading(true);
       axios
-        .get(`/api/units/${unitId}`, {
+        .get(`/api/products/${productId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -38,7 +38,7 @@ function EditBarangModal({ isOpen, close, unitId, onSuccess }) {
         .catch((err) => alert("Gagal mengambil data"))
         .finally(() => setLoading(false));
     }
-  }, [unitId]);
+  }, [productId]);
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
@@ -46,7 +46,7 @@ function EditBarangModal({ isOpen, close, unitId, onSuccess }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.put(`/api/units/${unitId}`, form, {
+      await axios.put(`/api/products/${productId}`, form, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

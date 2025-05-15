@@ -1,14 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function useProductActions() {
+export default function useUnitActions() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getProductById = async (id) => {
+  const getUnitById = async (id) => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/products/${id}`, {
+      const res = await axios.get(`/api/units/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -22,10 +22,10 @@ export default function useProductActions() {
     }
   };
 
-  const deleteProduct = async (id) => {
+  const deleteUnit = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`/api/products/${id}`, {
+      await axios.delete(`/api/unit/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -40,8 +40,8 @@ export default function useProductActions() {
   };
 
   return {
-    getProductById,
-    deleteProduct,
+    getUnitById,
+    deleteUnit,
     loading,
     error,
   };
