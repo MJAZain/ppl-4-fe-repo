@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { publicClient } from "../config/api";
 
 const useLogin = () => {
   const [email, setEmail] = useState("");
@@ -15,22 +16,14 @@ const login = async () => {
   setSuccess(null);
 
   try {
-    const response = await fetch("http://localhost:8080/api/users/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+  const { data } = await publicClient.post("/users/login", { email, password });
+  console.log("Response:", data);
 
-    const data = await response.json();
-    console.log('Response:', data);
-
-    if (!response.ok) {
-      throw new Error(data.Message || data.message || "Login failed");
+    if (!data) {
+      throw new Error("Login gagal");
     }
 
-    const token = data.Data?.token || data.data?.token || data.token;
+  const token = data.Data?.token || data.data?.token || data.token;
     if (token) {
       localStorage.setItem("token", token);
     } else {
@@ -40,7 +33,7 @@ const login = async () => {
     setSuccess("Login successful!");
     navigate("/dashboard");
   } catch (err) {
-    setError(err.message);
+    setError(err.message || "Login failed");
   } finally {
     setLoading(false);
   }

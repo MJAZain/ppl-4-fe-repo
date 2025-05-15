@@ -3,6 +3,7 @@ import Modal from "./modal";
 import InputField from "../inputField";
 import Button from "../buttonComp";
 import useUnitActions from "../../hooks/useUnitAction";
+import { apiClient } from "../../config/api";
 
 export default function EditUnitModal({ isOpen, close, unitId, onSuccess }) {
   const [form, setForm] = useState({ nama: "", deskripsi: "" });
@@ -29,23 +30,13 @@ export default function EditUnitModal({ isOpen, close, unitId, onSuccess }) {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/units/${unitId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) throw new Error("Gagal mengedit satuan");
-
-      onSuccess();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
+        await apiClient.put(`/units/${unitId}`, form);
+        onSuccess();
+      } catch (err) {
+        alert(err.message || "Gagal mengedit satuan");
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (

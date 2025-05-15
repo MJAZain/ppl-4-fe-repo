@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Modal from "./modal";
 import InputField from "../inputField";
 import Button from "../buttonComp";
+import { apiClient } from "../../config/api";
 
 const initialFormState = {
   nama: "",
@@ -25,24 +26,14 @@ export default function AddUnitModal({ isOpen, close, onSuccess }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/units", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) throw new Error("Gagal menambahkan satuan");
-
-      onSuccess();
-      setForm(initialFormState);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
+        await apiClient.post("/units/", form);
+        onSuccess();
+        setForm(initialFormState);
+      } catch (err) {
+        alert(err.message || "Gagal menambahkan satuan");
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (

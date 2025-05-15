@@ -17,7 +17,7 @@ export default function useBarangData() {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8080/api/products", {
+        const response = await fetch("http://localhost:8080/api/products/", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export default function useBarangData() {
           throw new Error(message);
         }
 
-        setData(result.data || []); // <-- use result.data based on your JSON
+        setData(result.data || []);
       } catch (err) {
         console.error("Fetch error:", err);
         setError(err.message || "An unexpected error occurred.");

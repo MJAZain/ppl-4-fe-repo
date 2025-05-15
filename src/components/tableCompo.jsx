@@ -2,7 +2,7 @@
 import React from "react";
 import ActionMenu from "./ActionMenu";
 
-function DataTable({ columns, data, showIndex = false, onEdit, onDelete }) {
+function DataTable({ columns, data, showIndex = false }) {
   return (
     <div className="overflow-x-auto rounded-lg shadow-md border">
       <table className="min-w-full text-sm border-collapse">
@@ -15,7 +15,7 @@ function DataTable({ columns, data, showIndex = false, onEdit, onDelete }) {
             )}
             {columns.map((col) => (
               <th
-                key={col.accessor}
+                key={col.accessor || col.header}
                 className="px-4 py-3 border-b-4 border-black text-center font-bold text-[18px] leading-[24px] text-black font-[Open_Sans]"
               >
                 {col.header}
@@ -24,25 +24,25 @@ function DataTable({ columns, data, showIndex = false, onEdit, onDelete }) {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, idx) => (
-            <tr key={idx} className="hover:bg-gray-50">
+          {data.map((row, rowIndex) => (
+            <tr key={row.id || rowIndex} className="hover:bg-gray-50">
               {showIndex && (
                 <td className="px-4 py-3 border-b-2 border-black text-center text-[18px] leading-[24px] text-black font-[Open_Sans] font-normal">
-                  {idx + 1}
+                  {rowIndex + 1}
                 </td>
               )}
-              {columns.map((col) => (
+              {columns.map((col, colIndex) => (
                 <td
-                  key={col.accessor}
+                  key={`${rowIndex}-${col.accessor || colIndex}`}
                   className="px-4 py-3 border-b-2 border-black text-center text-[18px] leading-[24px] text-black font-[Open_Sans] font-normal"
                 >
-                  {col.isAction ? (
-                    <ActionMenu
-                      onEdit={() => onEdit?.(row)}
-                      onDelete={() => onDelete?.(row)}
-                    />
+                  {/* Rendering priority: custom render > action column > accessor */}
+                  {col.render ? (
+                    col.render(row)
+                  ) : col.isAction && col.getActions ? (
+                    <ActionMenu actions={col.getActions(row)} />
                   ) : (
-                    row[col.accessor]
+                    row[col.accessor] ?? "-"
                   )}
                 </td>
               ))}
@@ -53,6 +53,5 @@ function DataTable({ columns, data, showIndex = false, onEdit, onDelete }) {
     </div>
   );
 }
-
 
 export default DataTable;

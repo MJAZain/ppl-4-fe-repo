@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useBarangData from "../hooks/useBarangData";
 import useSearch from "../hooks/useSearch";
-import useProductActions from "../hooks/useMasterAction";
+import useProductActions from "../hooks/useProductsAction";
 
 import ActionMenu from "../components/ActionMenu";
 import SearchBar from "../components/SearchBar";
@@ -25,9 +25,14 @@ function MasterBarangPage() {
     setBarangList(data);
   }, [data]);
 
-  const handleEdit = (id) => {
-    setEditId(id);
-    setEditOpen(true);
+  const handleEdit = async (id) => {
+  try {
+      const product = await getProductById(id);
+      setEditId(id);
+      setEditOpen(true);
+    } catch (err) {
+      alert("Gagal mengambil data produk.");
+    }
   };
 
   const handleDelete = async (id) => {
