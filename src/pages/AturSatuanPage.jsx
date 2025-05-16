@@ -91,8 +91,8 @@ function AturSatuanPage() {
   const { searchTerm, setSearchTerm, filteredData } = useSearch(units, ["nama"]);
 
   const columns = [
-    { header: "Satuan", accessor: "nama" },
-    { header: "Deskripsi", accessor: "deskripsi" },
+    { header: "Satuan", accessor: "name" },
+    { header: "Deskripsi", accessor: "description" },
     {
       header: "Aksi",
       accessor: "actions",

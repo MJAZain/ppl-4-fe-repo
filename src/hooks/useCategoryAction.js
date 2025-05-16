@@ -1,16 +1,15 @@
 import { useState } from "react";
-import axios from "axios";
 import { apiClient } from "../config/api";
 
-export default function useProductActions() {
+export default function useCategoryActions() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getProductById = async (id) => {
+  const getCategoryById = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get(`/products/${id}`);
+      const res = await apiClient.get(`/categories/${id}`);
       return res.data;
     } catch (err) {
       setError(err);
@@ -20,11 +19,11 @@ export default function useProductActions() {
     }
   };
 
-  const deleteProduct = async (id) => {
+  const deleteCategory = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      await apiClient.delete(`/products/${id}`);
+      await apiClient.delete(`/categories/${id}`);
       return true;
     } catch (err) {
       setError(err);
@@ -35,10 +34,9 @@ export default function useProductActions() {
   };
 
   return {
-    getProductById,
-    deleteProduct,
+    getCategoryById,
+    deleteCategory,
     loading,
     error,
   };
 }
-

@@ -10,6 +10,7 @@ import Button from "../components/buttonComp";
 import AddBarangModal from "../components/modal/addBarangModal";
 import EditBarangModal from "../components/modal/editBarangModal";
 import Sidebar from "../components/Sidebar";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 
 function MasterBarangPage() {
@@ -18,6 +19,9 @@ function MasterBarangPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
 
   const { getProductById, deleteProduct } = useProductActions();
 
@@ -35,16 +39,26 @@ function MasterBarangPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirm = window.confirm("Yakin ingin menghapus data?");
-    if (!confirm) return;
+  const handleDeleteRequest = (id) => {
+  setDeleteTargetId(id);
+  setIsConfirmOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
     try {
-      await deleteProduct(id);
-      setBarangList((prev) => prev.filter((item) => item.id !== id));
+      await deleteProduct(deleteTargetId);
+      setBarangList((prev) => prev.filter((item) => item.id !== deleteTargetId));
     } catch (err) {
       alert("Gagal menghapus data.");
+    } finally {
+      setIsConfirmOpen(false);
+      setDeleteTargetId(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmOpen(false);
+    setDeleteTargetId(null);
   };
 
   const handleEditSuccess = () => {
@@ -68,18 +82,18 @@ function MasterBarangPage() {
     { header: "Harga Beli", accessor: "purchase_price" },
     { header: "Harga Jual", accessor: "selling_price" },
     { header: "Harga Grosir", accessor: "wholesale_price" },
-    { header: "Stok Buffer", accessor: "stok_buffer" },
+    { header: "Stok Buffer", accessor: "stock_buffer" },
     { header: "Lokasi", accessor: "storage_location" },
     { header: "Merk", accessor: "brand" },
     {
       header: "Pilih Aksi",
       accessor: "actions",
       isAction: true,
-      render: (row) => (
+      render: (item) => (
         <ActionMenu
           actions={[
-            { label: "Edit", onClick: () => handleEdit(row.id) },
-            { label: "Delete", onClick: () => handleDelete(row.id) },
+            { label: "Edit", onClick: () => handleEdit(item.id) },
+            { label: "Delete", onClick: () => handleDeleteRequest(item.id) },
           ]}
         />
       ),
@@ -123,6 +137,14 @@ function MasterBarangPage() {
         close={() => setEditOpen(false)}
         productId={editId}
         onSuccess={handleEditSuccess}
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        title="Konfirmasi Penghapusan"
+        description="Apakah Anda yakin ingin menghapus obat ini?"
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

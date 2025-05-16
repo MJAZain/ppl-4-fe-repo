@@ -4,6 +4,7 @@ import MasterBarangPage from "./pages/MasterBarangPage";
 import BarangMasukPage from './pages/BarangMasukPage';
 import RegisterUserPage from "./pages/RegisterPage";
 import AturSatuanPage from "./pages/AturSatuanPage";
+import AturKategoriPage from "./pages/AturKategoriPage";
 
 /* 
  
@@ -20,6 +21,7 @@ function App() {
         <Route path="/dashboard" element={<MasterBarangPage />} />
         <Route path="/barang-masuk" element={<BarangMasukPage />} />
         <Route path="/satuan" element={<AturSatuanPage />} />
+        <Route path="/kategori" element={<AturKategoriPage />} />
       </Routes>
     </Router>
   );

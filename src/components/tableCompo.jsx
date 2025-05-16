@@ -1,10 +1,9 @@
-// components/DataTable.jsx
 import React from "react";
 import ActionMenu from "./ActionMenu";
 
 function DataTable({ columns, data, showIndex = false }) {
   return (
-    <div className="overflow-x-auto rounded-lg shadow-md border">
+    <div className="overflow-x-auto">
       <table className="min-w-full text-sm border-collapse">
         <thead>
           <tr>
@@ -36,7 +35,7 @@ function DataTable({ columns, data, showIndex = false }) {
                   key={`${rowIndex}-${col.accessor || colIndex}`}
                   className="px-4 py-3 border-b-2 border-black text-center text-[18px] leading-[24px] text-black font-[Open_Sans] font-normal"
                 >
-                  {/* Rendering priority: custom render > action column > accessor */}
+
                   {col.render ? (
                     col.render(row)
                   ) : col.isAction && col.getActions ? (
