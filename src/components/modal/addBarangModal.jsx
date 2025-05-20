@@ -69,45 +69,63 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
   const handleSubmit = async () => {
   const allFilled = Object.values(form).every(val => val.toString().trim() !== "");
   if (!allFilled) {
-    alert("Please fill in all fields.");
+    setToast({
+      message: "Tolong isi setiap kolom.",
+      type: "error"
+    });;
     return;
   }
 
   // Prepare payload with correct types and keys
   const payload = {
-      ...form,
-      category_id: Number(form.category_id),
-      unit_id: Number(form.unit_id),
-      package_content: Number(form.package_content),
-      purchase_price: Number(form.purchase_price),
-      selling_price: Number(form.selling_price),
-      wholesale_price: Number(form.wholesale_price),
-      stock_buffer: Number(form.stock_buffer),
-    };
+    name: form.name.trim(),
+    code: form.code.trim(),
+    barcode: form.barcode.trim(),
+    category_id: Number(form.category_id),
+    unit_id: Number(form.unit_id),
+    package_content: form.package_content ? Number(form.package_content) : null,
+    purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
+    selling_price: form.selling_price ? Number(form.selling_price) : null,
+    wholesale_price: form.wholesale_price ? Number(form.wholesale_price) : null,
+    stock_buffer: form.stock_buffer ? Number(form.stock_buffer) : null,
+    storage_location: form.storage_location.trim(),
+    brand: form.brand.trim()
+  };
+
+  if (!form.package_content || isNaN(Number(form.package_content))) {
+  setToast({ message: "Isi Paket harus diisi dengan angka yang valid.", type: "error" });
+  return;
+  }
 
     try {
       await apiClient.post("/products/", payload);
-
-      setToast({ message: "Barang berhasil ditambahkan.", type: "success" });
       setForm(initialFormState);
       close();
       onSubmit?.();
-    } catch (error) {
-      if (error.response) {
-        setToast({ message: error.response.data.message || "Gagal menambahkan barang.", type: "error" });
-        console.error("Error submitting barang:", error.response.data);
-      } else {
-        setToast({ message: "Gagal menambahkan barang.", type: "error" });
-        console.error("Error submitting barang:", error);
-      }
-    }
+    }  catch (error) {
+  if (error.response) {
+    console.log("Server error:", error.response.data);
+    setToast({
+      message: error.response.data.message || "Gagal menambahkan barang.",
+      type: "error"
+    });
+  } else {
+    console.error("Unexpected error:", error);
+    setToast({
+      message: "Gagal menambahkan barang.",
+      type: "error"
+    });
+  }
+}
+
   };
 
   const numericFields = [
-    "stok_buffer",
+    "stock_buffer",
     "selling_price",
     "purchase_price",
     "wholesale_price",
+    "package_content",
   ];
 
   return (

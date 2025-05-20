@@ -10,12 +10,15 @@ import useCategoryActions from "../hooks/useCategoryAction";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Sidebar from "../components/Sidebar";
 import { apiClient } from "../config/api";
+import { PlusIcon } from '@heroicons/react/24/solid';
+import Toast from "../components/toast";
 
 function AturKategoriPage() {
   const [categories, setCategories] = useState([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -82,11 +85,30 @@ function AturKategoriPage() {
     setDeleteTarget(null);
   };
 
-  const handleSuccess = () => {
-    fetchCategories();
-    setIsAddOpen(false);
-    setIsEditOpen(false);
+  const handleSuccess = async ({ message, closeModal }) => {
+  setToast({ message, type: "success" });
+
+  const data = await fetchCategories();
+    if (Array.isArray(data)) {
+      setCategories(data);
+    } else if (Array.isArray(data?.data)) {
+      setCategories(data.data);
+    }
+
+    closeModal();
   };
+
+  const handleEditSuccess = () =>
+    handleSuccess({
+      message: "Berhasil mengedit kategori.",
+      closeModal: () => setIsEditOpen(false),
+    });
+
+  const handleAddSuccess = () =>
+    handleSuccess({
+      message: "Berhasil menambahkan kategori.",
+      closeModal: () => setIsAddOpen(false),
+    });
 
   const { searchTerm, setSearchTerm, filteredData } = useSearch(categories, ["name"]);
 
@@ -110,20 +132,27 @@ function AturKategoriPage() {
 
   return (
     <div className="flex">
+      <div className="bg-white min-h-screen">
       <Sidebar />
+      </div>
       <div className="p-5 w-full py-10">
         <h1 className="text-2xl font-bold mb-6">Daftar Kategori</h1>
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Cari Kategori"
+          />
 
-        <SearchBar
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Cari Kategori"
-        />
+        <div className="border border-gray-400 rounded-xl bg-white p-5">
 
-        <div className="border-2 border-black p-2 rounded-xl">
-
-          <div className="flex justify-start mb-4">
-            <Button onClick={() => setIsAddOpen(true)}>Tambah Kategori</Button>
+          <div className="flex justify-start py-5">
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="flex items-center text-blue-700 font-semibold space-x-1 bg-transparent border border-blue-700 py-2 px-4 rounded-md"
+            >
+              <PlusIcon className="w-4 h-4" />
+              <span>Tambah Kategori</span>
+            </button>
           </div>
 
           <DataTable columns={columns} data={filteredData} showIndex={true} />
@@ -131,14 +160,14 @@ function AturKategoriPage() {
           <AddCategoryModal
             isOpen={isAddOpen}
             close={() => setIsAddOpen(false)}
-            onSuccess={handleSuccess}
+            onSuccess={handleAddSuccess}
           />
 
           <EditCategoryModal
             isOpen={isEditOpen}
             close={() => setIsEditOpen(false)}
             categoryId={editId}
-            onSuccess={handleSuccess}
+            onSuccess={handleEditSuccess}
           />
 
           <ConfirmDialog
@@ -148,6 +177,14 @@ function AturKategoriPage() {
             onCancel={handleCancelDelete}
             onConfirm={handleConfirmDelete}
           />
+
+          {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
         </div>
       </div>
     </div>

@@ -1,37 +1,40 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { apiClient } from "../config/api";
 
 export default function useUnitActions() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getUnitById = async (id) => {
+  const handleRequest = useCallback(async (requestFn) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get(`/units/${id}`);
-      return res.data;
+      const result = await requestFn();
+      return result;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data?.message || err.message || "Unknown error");
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const deleteUnit = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await apiClient.delete(`/units/${id}`);
-      return true;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Memoize getUnitById to keep function identity stable
+  const getUnitById = useCallback(
+    (id) => {
+      return handleRequest(() =>
+        apiClient.get(`/units/${id}`).then((res) => res.data.data)
+      );
+    },
+    [handleRequest]
+  );
+
+  const deleteUnit = useCallback(
+    (id) => {
+      return handleRequest(() => apiClient.delete(`/units/${id}`));
+    },
+    [handleRequest]
+  );
 
   return {
     getUnitById,

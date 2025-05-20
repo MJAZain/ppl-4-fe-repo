@@ -13,7 +13,6 @@ function Modal({
   return (
     <div
       className={`fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50 ${containerClassName}`}
-      onClick={close}
     >
       <div
         className={`relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-3xl ${contentClassName}`}

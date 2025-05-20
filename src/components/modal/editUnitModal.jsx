@@ -4,20 +4,25 @@ import InputField from "../inputField";
 import Button from "../buttonComp";
 import useUnitActions from "../../hooks/useUnitAction";
 import { apiClient } from "../../config/api";
+import Toast from "../toast";
 
 export default function EditUnitModal({ isOpen, close, unitId, onSuccess }) {
-  const [form, setForm] = useState({ nama: "", deskripsi: "" });
+  const [form, setForm] = useState({ name: "", description: "" });
   const { getUnitById } = useUnitActions();
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     if (unitId && isOpen) {
       (async () => {
         try {
           const data = await getUnitById(unitId);
-          setForm({ nama: data.nama, deskripsi: data.deskripsi || "" });
+          setForm({ name: data.name, description: data.description || "" });
         } catch {
-          alert("Gagal mengambil data satuan");
+          setToast({
+          message: "Gagal menambahkan kategori.",
+          type: "error",
+        });
         }
       })();
     }
@@ -28,41 +33,54 @@ export default function EditUnitModal({ isOpen, close, unitId, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    try {
-        await apiClient.put(`/units/${unitId}`, form);
-        onSuccess();
-      } catch (err) {
-        alert(err.message || "Gagal mengedit satuan");
-      } finally {
-        setLoading(false);
-      }
-  };
+  setLoading(true);
+
+  try {
+    const res = await apiClient.put(`/units/${unitId}`, form);
+    onSuccess();
+  } catch (err) {
+    setToast({
+      message: err.message || "Gagal mengedit satuan.",
+      type: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
-    <Modal isOpen={isOpen} close={close}>
+    <Modal isOpen={isOpen} close={close} contentClassName="w-96">
       <h2 className="text-xl font-semibold mb-4 text-center">Edit Satuan</h2>
-      <div className="flex flex-col gap-5 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="gap-5">
         <InputField
           label="Nama"
-          value={form.nama}
-          onChange={handleChange("nama")}
+          value={form.name}
+          onChange={handleChange("name")}
           placeholder="Masukkan nama satuan"
+          className="w-full h-10"
         />
         <InputField
           label="Deskripsi"
-          value={form.deskripsi}
-          onChange={handleChange("deskripsi")}
+          value={form.description}
+          onChange={handleChange("description")}
           placeholder="Masukkan deskripsi"
+          className="w-full h-20"
         />
       </div>
-      <div className="grid grid-cols-2 gap-5 py-5 pr-2">
-        <Button onClick={close} className="bg-gray-200 text-black">
-          Batal
-        </Button>
-        <Button onClick={handleSubmit} disabled={loading}>
+      <div className="py-5 pr-2">
+        <Button onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? "Menyimpan..." : "Simpan"}
         </Button>
+      </div>
+      <div>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </Modal>
   );

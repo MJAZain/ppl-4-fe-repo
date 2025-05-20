@@ -5,6 +5,8 @@ import BarangMasukPage from './pages/BarangMasukPage';
 import RegisterUserPage from "./pages/RegisterPage";
 import AturSatuanPage from "./pages/AturSatuanPage";
 import AturKategoriPage from "./pages/AturKategoriPage";
+import AturUsersPage from "./pages/UserManagementPage";
+import BarangMasukDetailPage from "./pages/BarangMasukDetail";
 
 /* 
  
@@ -20,8 +22,10 @@ function App() {
         <Route path="/register" element={<RegisterUserPage />} />
         <Route path="/dashboard" element={<MasterBarangPage />} />
         <Route path="/barang-masuk" element={<BarangMasukPage />} />
+        <Route path="/barang-masuk-detail" element={<BarangMasukDetailPage />} />
         <Route path="/satuan" element={<AturSatuanPage />} />
         <Route path="/kategori" element={<AturKategoriPage />} />
+        <Route path="/user" element={<AturUsersPage />} />
       </Routes>
     </Router>
   );

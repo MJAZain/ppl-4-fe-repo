@@ -10,12 +10,15 @@ import useUnitActions from "../hooks/useUnitAction";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Sidebar from "../components/Sidebar";
 import { apiClient } from "../config/api";
+import { PlusIcon } from '@heroicons/react/24/solid';
+import Toast from "../components/toast";
 
 function AturSatuanPage() {
   const [units, setUnits] = useState([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -27,7 +30,6 @@ function AturSatuanPage() {
       const response = await apiClient.get("/units/");
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch units", error);
       throw error;
     }
     };
@@ -42,13 +44,11 @@ function AturSatuanPage() {
           } else if (Array.isArray(data?.data)) {
             setUnits(data.data);
           } else {
-            console.error("Unexpected data format:", data);
             setUnits([]);
           }
 
         } catch (error) {
-          console.error("Error loading units", error);
-          setUnits([]); // fallback
+          setUnits([]);
         }
       };
 
@@ -70,7 +70,6 @@ function AturSatuanPage() {
       await deleteUnit(deleteTarget.id);
       await fetchUnits();
     } catch (err) {
-      console.error("Delete failed:", err);
     } finally {
       setIsConfirmOpen(false);
       setDeleteTarget(null);
@@ -82,13 +81,32 @@ function AturSatuanPage() {
     setDeleteTarget(null);
   };
 
-  const handleSuccess = () => {
-    fetchUnits();
-    setIsAddOpen(false);
-    setIsEditOpen(false);
+  const handleSuccess = async ({ message, closeModal }) => {
+  setToast({ message, type: "success" });
+
+  const data = await fetchUnits();
+    if (Array.isArray(data)) {
+      setUnits(data);
+    } else if (Array.isArray(data?.data)) {
+      setUnits(data.data);
+    }
+
+    closeModal();
   };
 
-  const { searchTerm, setSearchTerm, filteredData } = useSearch(units, ["nama"]);
+  const handleEditSuccess = () =>
+    handleSuccess({
+      message: "Berhasil mengedit satuan.",
+      closeModal: () => setIsEditOpen(false),
+    });
+
+  const handleAddSuccess = () =>
+    handleSuccess({
+      message: "Berhasil menambahkan satuan.",
+      closeModal: () => setIsAddOpen(false),
+    });
+
+  const { searchTerm, setSearchTerm, filteredData } = useSearch(units, ["name"]);
 
   const columns = [
     { header: "Satuan", accessor: "name" },
@@ -110,9 +128,11 @@ function AturSatuanPage() {
 
   return (
     <div className="flex">
-      <Sidebar />
-      <div className="p-5 w-full">
-        <h1 className="text-2xl font-bold text-center mb-6">Daftar Satuan</h1>
+      <div className="bg-white min-h-screen">
+        <Sidebar />
+      </div>
+      <div className="p-5 w-full py-10">
+        <h1 className="text-2xl font-bold mb-6">Daftar Satuan</h1>
 
         <SearchBar
           value={searchTerm}
@@ -120,23 +140,30 @@ function AturSatuanPage() {
           placeholder="Cari Satuan"
         />
 
-        <div className="flex justify-end mb-4">
-          <Button onClick={() => setIsAddOpen(true)}>Tambah Satuan</Button>
-        </div>
+        <div className="border border-gray-400 rounded-xl bg-white p-5">
 
+          <div className="flex justify-start py-5">
+            <button onClick={() => setIsAddOpen(true)}
+              className="flex items-center text-blue-700 font-semibold space-x-1 bg-transparent border border-blue-700 py-2 px-4 rounded-md"
+            >
+              <PlusIcon className="w-4 h-4" />
+                <span>Tambah Satuan</span>
+            </button>
+          </div>
         <DataTable columns={columns} data={filteredData} showIndex={true} />
+        </div>
 
         <AddUnitModal
           isOpen={isAddOpen}
           close={() => setIsAddOpen(false)}
-          onSuccess={handleSuccess}
+          onSuccess={handleAddSuccess}
         />
 
         <EditUnitModal
           isOpen={isEditOpen}
           close={() => setIsEditOpen(false)}
           unitId={editId}
-          onSuccess={handleSuccess}
+          onSuccess={handleEditSuccess}
         />
 
         <ConfirmDialog
@@ -146,6 +173,14 @@ function AturSatuanPage() {
           onCancel={handleCancelDelete}
           onConfirm={handleConfirmDelete}
         />
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </div>
   );

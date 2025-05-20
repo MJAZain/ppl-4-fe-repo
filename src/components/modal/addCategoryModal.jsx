@@ -50,8 +50,8 @@ export default function AddCategoryModal({ isOpen, close, onSuccess }) {
   };
 
   return (
-    <Modal isOpen={isOpen} close={close}>
-      <h2 className="text-xl font-semibold mb-4 text-center">Tambah Kategori</h2>
+    <Modal isOpen={isOpen} close={close} contentClassName="w-96">
+      <h2 className="text-xl font-semibold mb-4 text-center py-5">Tambah Kategori</h2>
       <div className="gap-5">
         <InputField
           label="Nama"

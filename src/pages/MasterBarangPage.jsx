@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import useBarangData from "../hooks/useBarangData";
 import useSearch from "../hooks/useSearch";
 import useProductActions from "../hooks/useProductsAction";
+
+import { apiClient } from "../config/api";
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 import ActionMenu from "../components/ActionMenu";
 import SearchBar from "../components/SearchBar";
@@ -11,23 +13,85 @@ import AddBarangModal from "../components/modal/addBarangModal";
 import EditBarangModal from "../components/modal/editBarangModal";
 import Sidebar from "../components/Sidebar";
 import ConfirmDialog from "../components/ConfirmDialog";
+import Toast from "../components/toast";
 
 
 function MasterBarangPage() {
-  const { data, loading } = useBarangData();
-  const [barangList, setBarangList] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
-
+  const [barangList, setBarangList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { getProductById, deleteProduct } = useProductActions();
 
+ const fetchBarang = async () => {
+  try {
+    const response = await apiClient.get("/products/");
+    return response.data;
+  } catch (err) {
+    setError(err.message || "Gagal mengambil data.");
+    console.error("Fetch error:", err);
+    return []; // Fallback to empty array
+  }
+};
+
+
   useEffect(() => {
-    setBarangList(data);
-  }, [data]);
+  const loadBarang = async () => {
+    try {
+      const data = await fetchBarang();
+
+      if (Array.isArray(data)) {
+        setBarangList(data);
+      } else if (Array.isArray(data?.data)) {
+        setBarangList(data.data);
+      } else {
+        console.error("Unexpected data format:", data);
+        setBarangList([]);
+      }
+    } catch (error) {
+      console.error("Error loading barang:", error);
+      setBarangList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadBarang();
+}, []);
+
+  const handleAddBarang = async () => {
+  setToast({ message: "Barang berhasil ditambahkan", type: "success" });
+
+  const data = await fetchBarang();
+    if (Array.isArray(data)) {
+      setBarangList(data);
+    } else if (Array.isArray(data?.data)) {
+      setBarangList(data.data);
+    }
+  setIsModalOpen(false);
+  };
+
+  const handleEditSuccess = async () => {
+  setToast({
+    message: "Barang berhasil diperbarui",
+    type: "success",
+  });
+
+  const data = await fetchBarang();
+    if (Array.isArray(data)) {
+      setBarangList(data);
+    } else if (Array.isArray(data?.data)) {
+      setBarangList(data.data);
+    }
+  setEditOpen(false);
+};
+
 
   const handleEdit = async (id) => {
   try {
@@ -44,26 +108,33 @@ function MasterBarangPage() {
   setIsConfirmOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    try {
-      await deleteProduct(deleteTargetId);
-      setBarangList((prev) => prev.filter((item) => item.id !== deleteTargetId));
-    } catch (err) {
-      alert("Gagal menghapus data.");
-    } finally {
-      setIsConfirmOpen(false);
-      setDeleteTargetId(null);
-    }
-  };
-
   const handleCancelDelete = () => {
     setIsConfirmOpen(false);
     setDeleteTargetId(null);
   };
 
-  const handleEditSuccess = () => {
-    setEditOpen(false);
-  };
+
+
+const handleConfirmDelete = async () => {
+  try {
+    await deleteProduct(deleteTargetId);
+    const data = await fetchBarang();
+    if (Array.isArray(data)) {
+      setBarangList(data);
+    } else if (Array.isArray(data?.data)) {
+      setBarangList(data.data);
+    }
+    setToast({
+      message: "Barang berhasil dihapus",
+      type: "success",
+    });
+  } catch (err) {
+    alert("Gagal menghapus data.");
+  } finally {
+    setIsConfirmOpen(false);
+    setDeleteTargetId(null);
+  }
+};
 
   const { searchTerm, setSearchTerm, filteredData } = useSearch(barangList, [
     "nama",
@@ -100,28 +171,35 @@ function MasterBarangPage() {
     },
   ];
 
-  const handleAddBarang = (newItem) => {
-    setBarangList((prev) => [...prev, newItem]);
-  };
 
   if (loading) return <div className="text-center mt-6">Loading...</div>;
 
   return (
     <div className="flex">
       
-      <Sidebar />
+      <div className="bg-white min-h-screen">
+        <Sidebar />
+      </div>
       
-      <div className="p-5 w-full">
+      <div className="p-5">
         <h1 className="text-2xl font-bold mb-6">Daftar Barang</h1>
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
         <div className=" border-1 rounded-md border-gray-300 bg-white p-5">
           <div className="flex gap-4 mb-4">
-            <Button onClick={() => setIsModalOpen(true)}>Tambah Barang</Button>
+             <button onClick={() => setIsModalOpen(true)}
+              className="flex items-center text-blue-700 font-semibold space-x-1 bg-transparent border border-blue-700 py-2 px-4 rounded-md"
+            >
+              <PlusIcon className="w-4 h-4" />
+                <span>Tambah Barang</span>
+            </button>
             <Button>Stock Opname</Button>
           </div>
-
-        <DataTable columns={columns} data={filteredData} showIndex={true} />
+        
+          <div className="max-w-[1121px]">
+            <DataTable columns={columns} data={filteredData} showIndex={true} />
+          </div>
+        
         </div>
      </div>
       
@@ -136,7 +214,7 @@ function MasterBarangPage() {
         isOpen={isEditOpen}
         close={() => setEditOpen(false)}
         productId={editId}
-        onSuccess={handleEditSuccess}
+        onSubmit={handleEditSuccess}
       />
 
       <ConfirmDialog
@@ -146,6 +224,14 @@ function MasterBarangPage() {
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -4,20 +4,25 @@ import InputField from "../inputField";
 import Button from "../buttonComp";
 import useCategoryActions from "../../hooks/useCategoryAction";
 import { apiClient } from "../../config/api";
+import Toast from "../toast";
 
 export default function EditCategoryModal({ isOpen, close, categoryId, onSuccess }) {
-  const [form, setForm] = useState({ name: "", deskripsi: "" });
+  const [form, setForm] = useState({ name: "", description: "" });
   const { getCategoryById } = useCategoryActions();
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     if (categoryId && isOpen) {
       (async () => {
         try {
           const data = await getCategoryById(categoryId);
-          setForm({ name: data.name, deskripsi: data.deskripsi || "" });
+          setForm({ name: data.name, description: data.description || ""});
         } catch {
-          alert("Gagal mengambil data satuan");
+          setToast({
+          message: "Gagal mengambil data kategori.",
+          type: "error",
+        });
         }
       })();
     }
@@ -31,9 +36,16 @@ export default function EditCategoryModal({ isOpen, close, categoryId, onSuccess
     setLoading(true);
     try {
         await apiClient.put(`/categories/${categoryId}`, form);
+        setToast({
+          message: "Kategori berhasil ditambahkan!",
+          type: "success",
+        });
         onSuccess();
       } catch (err) {
-        alert(err.message || "Gagal mengedit satuan");
+        setToast({
+          message: err.message || "Gagal menambahkan kategori.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -42,27 +54,35 @@ export default function EditCategoryModal({ isOpen, close, categoryId, onSuccess
   return (
     <Modal isOpen={isOpen} close={close}>
       <h2 className="text-xl font-semibold mb-4 text-center">Edit Satuan</h2>
-      <div className="flex flex-col gap-5 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="gap-5">
         <InputField
           label="Nama"
           value={form.name}
           onChange={handleChange("name")}
           placeholder="Masukkan nama satuan"
+          className="w-full h-10"
         />
         <InputField
           label="Deskripsi"
-          value={form.deskripsi}
-          onChange={handleChange("deskripsi")}
+          value={form.description}
+          onChange={handleChange("description")}
           placeholder="Masukkan deskripsi"
+          className="w-full h-20"
         />
       </div>
-      <div className="grid grid-cols-2 gap-5 py-5 pr-2">
-        <Button onClick={close} className="bg-gray-200 text-black">
-          Batal
-        </Button>
-        <Button onClick={handleSubmit} disabled={loading}>
+      
+        <Button onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? "Menyimpan..." : "Simpan"}
         </Button>
+      
+      <div>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </Modal>
   );
