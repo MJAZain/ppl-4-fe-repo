@@ -78,14 +78,34 @@ export default function Sidebar() {
             </div>
           )}
 
-          {/* Laporan Keuangan */}
+          {/* */}
           <Link
-            to="/laporan-keuangan"
+            to="/stock-opname"
             className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
-              isActive("/laporan-keuangan") ? "bg-gray-200" : ""
+              isActive("/stock-opname") ? "bg-gray-200" : ""
             }`}
           >
-            Laporan Keuangan
+            StockOpname
+          </Link>
+
+          {/* Laporan Keuangan */}
+          <Link
+            to="/laporan-masuk"
+            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
+              isActive("/laporan-masuk") ? "bg-gray-200" : ""
+            }`}
+          >
+            Laporan Barang Masuk
+          </Link>
+
+          {/* Laporan Keuangan */}
+          <Link
+            to="/laporan-terjual"
+            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
+              isActive("/laporan-terjual") ? "bg-gray-200" : ""
+            }`}
+          >
+            Laporan Barang Terjual
           </Link>
 
           {/*  */}

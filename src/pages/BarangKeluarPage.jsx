@@ -8,17 +8,17 @@ import Toast from "../components/toast";
 
 const initialFormState = {
   date: "",
-  supplier: "",
+  customer: "",
   no_faktur: "",
 };
 
 const labelMap = {
   date: "Tanggal",
-  supplier: "Nama Supplier",
+  customer: "Nama Customer",
   no_faktur: "NSFP",
 };
 
-export default function BarangMasukPage() {
+export default function BarangKeluarPage() {
   const [toast, setToast] = useState(null);
 
   const navigate = useNavigate();
@@ -37,18 +37,20 @@ export default function BarangMasukPage() {
       });
       return;
     }
-    localStorage.setItem("barangMasukForm", JSON.stringify(form));
-    navigate("/barang-masuk-detail");
+    localStorage.setItem("barangKeluarForm", JSON.stringify(form));
+    navigate("/barang-keluar-detail");
   };
 
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+
       <div className="bg-white min-h-screen">
         <Sidebar />
       </div>
+
       <div className="bg-white max-w-xl mx-auto w-full p-6 mt-10 border rounded-md border-gray-300 shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Barang Masuk</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">Barang Terjual</h1>
 
         {/* Dynamically render input fields */}
         <div className="space-y-4">

@@ -4,12 +4,12 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../components/tableCompo";
 import ActionMenu from "../components/ActionMenu";
-import TambahBarangModal from "../components/modal/addBarangMasukModal";
+import TambahBarangKeluarModal from "../components/modal/addBarangKeluarModal";
 import { apiClient } from "../config/api";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Toast from "../components/toast";
 
-export default function BarangMasukDetailPage() {
+export default function BarangKeluarDetailPage() {
   const [toast, setToast] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 const [itemToDelete, setItemToDelete] = useState(null);
@@ -27,7 +27,7 @@ const [barangList, setBarangList] = useState(() => {
 const navigate = useNavigate();
 
 useEffect(() => {
-  const storedForm = JSON.parse(localStorage.getItem("barangMasukForm") || "null");
+  const storedForm = JSON.parse(localStorage.getItem("barangKeluarForm") || "null");
   if (storedForm) {
     setFormData(storedForm);
   }
@@ -38,7 +38,7 @@ useEffect(() => {
   if (storedBarangList) {
     setBarangList(storedBarangList);
   }
-}, []);  // <-- Initialize barangList on mount
+}, []); 
 
 useEffect(() => {
   localStorage.setItem("barangList", JSON.stringify(barangList));
@@ -46,9 +46,9 @@ useEffect(() => {
 
 
   const handleKembali = () => {
-    localStorage.removeItem("barangMasukForm");
+    localStorage.removeItem("barangKeluarForm");
     localStorage.removeItem("barangList");
-    navigate("/barang-masuk");
+    navigate("/barang-keluar");
   };
 
   
@@ -77,15 +77,13 @@ const cancelDelete = () => {
   setItemToDelete(null);
 };
 
-
-
 const handleTambahBarang = (item) => {
   setBarangList((prev) => [...prev, item]);
 };
 
 const handleSave = async () => {
   try {
-    const form = JSON.parse(localStorage.getItem("barangMasukForm"));
+    const form = JSON.parse(localStorage.getItem("barangKeluarForm"));
     const barangList = JSON.parse(localStorage.getItem("barangList"));
 
     if (!form || !barangList || barangList.length === 0) {
@@ -97,35 +95,37 @@ const handleSave = async () => {
     }
 
     const payload = {
-      incoming_product: {
+      outgoing_product: {
         date: new Date(form.date).toISOString(),
-        supplier: form.supplier,
+        customer: form.customer,
         no_faktur: form.no_faktur,
-        payment_status: form.payment_status || "LUNAS", // Optional default
+        payment_status: form.payment_status || "LUNAS",
       },
       details: barangList.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
         price: item.price,
-        total: item.price, // Total is still needed for backend calculation
+        total: item.quantity * item.price,
       })),
     };
 
-    const response = await apiClient.post("/incoming-products/", payload);
+
+  const response = await apiClient.post("/outgoing-products/", payload);
+
 
     setToast({
-        message: "Barang masuk berhasil disimpan!",
+        message: "Barang terjual berhasil disimpan!",
         type: "success",
       });
 
-    localStorage.removeItem("barangMasukForm");
+    localStorage.removeItem("barangKeluarForm");
     localStorage.removeItem("barangList");
 
-    navigate("/barang-masuk");
+    navigate("/barang-keluar");
   } catch (err) {
-    console.error("Gagal menyimpan barang masuk:", err);
+    console.error("Gagal menyimpan barang terjual:", err);
     setToast({
-        message: "Gagal menyimpan barang masuk. Silakan coba lagi.",
+        message: "Gagal menyimpan barang terjual. Silakan coba lagi.",
         type: "error",
       });
     
@@ -153,10 +153,9 @@ const columns = [
 ];
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-  
+    <div className="min-h-screen bg-gray-100">
       <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold mb-6">Barang Masuk</h1>
+        <h1 className="text-2xl font-bold mb-6">Barang Terjual</h1>
 
         <div className="mb-4">
           <Button className="mb-4" onClick={() => setModalOpen(true)}>
@@ -174,7 +173,7 @@ const columns = [
             )}
         </div>
 
-        <TambahBarangModal
+        <TambahBarangKeluarModal
           isOpen={modalOpen}
           onClose={() => {
             setModalOpen(false);
@@ -185,6 +184,8 @@ const columns = [
           }}
           initialData={editingItem}
         />
+
+
           {toast && (
             <Toast
               message={toast.message}
