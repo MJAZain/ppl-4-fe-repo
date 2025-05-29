@@ -43,7 +43,23 @@ function LaporanBarangKeluarPage() {
   const columns = [
     { header: "Tanggal", accessor: "date" },
     { header: "Nama Pelanggan", accessor: "customer" },
-    { header: "Total Pembelian Barang", accessor: "total_amount" },
+    {
+      header: "Total Pembelian Barang",
+      accessor: "total_amount",
+      render: (row) => {
+        const value = row.total_amount;
+
+        // Format the number as IDR
+        const formatted = new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(value);
+
+        // Replace default "Rp" with custom "Rp."
+        return formatted.replace("Rp", "Rp.");
+      },
+    },
     { header: "NSFP", accessor: "no_faktur" },
     { header: "Status", accessor: "payment_status" },
   ];
@@ -55,7 +71,7 @@ function LaporanBarangKeluarPage() {
             </div>
 
       <div className="p-5 w-full py-10">
-        <h1 className="text-2xl font-bold mb-6">Laporan Barang Masuk</h1>
+        <h1 className="text-2xl font-bold mb-6">Laporan Barang Terjual</h1>
 
         <SearchBar
           value={searchTerm}

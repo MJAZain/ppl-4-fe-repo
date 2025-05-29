@@ -43,7 +43,20 @@ function LaporanBarangMasukPage() {
   const columns = [
     { header: "Tanggal", accessor: "date" },
     { header: "Nama Supplier", accessor: "supplier" },
-    { header: "Total Pembelian Barang", accessor: "total_amount" },
+    { header: "Total Pembelian Barang", accessor: "total_amount",
+      render: (row) => {
+        const value = row.total_amount;
+
+        // Format the number as IDR
+        const formatted = new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(value);
+
+        // Replace default "Rp" with custom "Rp."
+        return formatted.replace("Rp", "Rp.");
+      }, },
     { header: "NSFP", accessor: "no_faktur" },
     { header: "Status", accessor: "payment_status" },
   ];

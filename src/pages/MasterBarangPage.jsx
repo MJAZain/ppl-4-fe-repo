@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useSearch from "../hooks/useSearch";
 import useProductActions from "../hooks/useProductsAction";
+import { useNavigate } from 'react-router-dom';
 
 import { apiClient } from "../config/api";
 import { PlusIcon } from '@heroicons/react/24/solid';
@@ -26,6 +27,7 @@ function MasterBarangPage() {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { getProductById, deleteProduct } = useProductActions();
 
@@ -193,7 +195,9 @@ const handleConfirmDelete = async () => {
               <PlusIcon className="w-4 h-4" />
                 <span>Tambah Barang</span>
             </button>
-            <Button>Stock Opname</Button>
+            <Button onClick={() => navigate('/stock-opname')}>
+              Stock Opname
+            </Button>
           </div>
         
           <div className="max-w-[1121px]">
