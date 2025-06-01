@@ -16,8 +16,8 @@ const initialFormState = {
   selling_price: "",
   wholesale_price: "",
   stock_buffer: "",
-  storage_location: "",
-  brand: "",
+  storage_location_id: "",
+  brand_id: "",
 };
 
 const labelMap = {
@@ -31,18 +31,21 @@ const labelMap = {
   selling_price: "Harga Jual",
   wholesale_price: "Harga Jual ",
   stock_buffer: "Stok Buffer",
-  storage_location: "Lokasi Obat",
-  brand: "Nama Brand",
+  storage_location_id: "Lokasi Obat",
+  brand_id: "Nama Brand",
 };
-
 
 function AddBarangModal({ isOpen, close, onSubmit }) {
   const [form, setForm] = useState(initialFormState);
   const [toast, setToast] = useState(null);
   const [categories, setCategories] = useState([]);
   const [units, setUnits] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [storageLocations, setStorageLocations] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingUnits, setLoadingUnits] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [loadingStorageLocations, setLoadingStorageLocations] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -69,9 +72,36 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
       }
     };
 
+    const fetchBrands = async () => {
+      setLoadingBrands(true);
+      try {
+        const res = await apiClient.get("/brands?page=1&limit=10000");
+        setBrands(res.data.data.data);
+      } catch (err) {
+        console.error("Failed to fetch brands", err);
+      } finally {
+        setLoadingBrands(false);
+      }
+    };
+
+    const fetchStorageLocations = async () => {
+      setLoadingStorageLocations(true);
+      try {
+        const res = await apiClient.get(
+          "/storage-locations?page=1&limit=10000"
+        );
+        setStorageLocations(res.data.data.data);
+      } catch (err) {
+        console.error("Failed to fetch storage locations", err);
+      } finally {
+        setLoadingStorageLocations(false);
+      }
+    };
     if (isOpen) {
       fetchCategories();
       fetchUnits();
+      fetchBrands();
+      fetchStorageLocations();
     }
   }, [isOpen]);
 
@@ -80,67 +110,77 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
   };
 
   const handleSubmit = async () => {
-  const allFilled = Object.values(form).every(val => val.toString().trim() !== "");
-  if (!allFilled) {
-    setToast({
-      message: "Tolong isi setiap kolom.",
-      type: "error"
-    });;
-    return;
-  }
-
-  for (let field of numericFields) {
-    const value = Number(form[field]);
-    if (isNaN(value) || value < 1) {
+    const allFilled = Object.values(form).every(
+      (val) => val.toString().trim() !== ""
+    );
+    if (!allFilled) {
       setToast({
-        message: `${labelMap[field] || field} harus diisi dengan angka lebih dari 0.`,
-        type: "error"
+        message: "Tolong isi setiap kolom.",
+        type: "error",
       });
       return;
     }
-  }
 
-  const payload = {
-    name: form.name.trim(),
-    code: form.code.trim(),
-    barcode: form.barcode.trim(),
-    category_id: Number(form.category_id),
-    unit_id: Number(form.unit_id),
-    package_content: form.package_content ? Number(form.package_content) : null,
-    purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
-    selling_price: form.selling_price ? Number(form.selling_price) : null,
-    wholesale_price: form.wholesale_price ? Number(form.wholesale_price) : null,
-    stock_buffer: form.stock_buffer ? Number(form.stock_buffer) : null,
-    storage_location: form.storage_location.trim(),
-    brand: form.brand.trim()
-  };
+    for (let field of numericFields) {
+      const value = Number(form[field]);
+      if (isNaN(value) || value < 1) {
+        setToast({
+          message: `${
+            labelMap[field] || field
+          } harus diisi dengan angka lebih dari 0.`,
+          type: "error",
+        });
+        return;
+      }
+    }
 
-  if (!form.package_content || isNaN(Number(form.package_content))) {
-  setToast({ message: "Isi Paket harus diisi dengan angka yang valid.", type: "error" });
-  return;
-  }
+    const payload = {
+      name: form.name.trim(),
+      code: form.code.trim(),
+      barcode: form.barcode.trim(),
+      category_id: Number(form.category_id),
+      unit_id: Number(form.unit_id),
+      package_content: form.package_content
+        ? Number(form.package_content)
+        : null,
+      purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
+      selling_price: form.selling_price ? Number(form.selling_price) : null,
+      wholesale_price: form.wholesale_price
+        ? Number(form.wholesale_price)
+        : null,
+      stock_buffer: form.stock_buffer ? Number(form.stock_buffer) : null,
+      brand_id: Number(form.brand_id),
+      storage_location_id: Number(form.storage_location_id),
+    };
+
+    if (!form.package_content || isNaN(Number(form.package_content))) {
+      setToast({
+        message: "Isi Paket harus diisi dengan angka yang valid.",
+        type: "error",
+      });
+      return;
+    }
 
     try {
       await apiClient.post("/products/", payload);
       setForm(initialFormState);
       close();
       onSubmit?.();
-    }  catch (error) {
-  if (error.response) {
-    console.log("Server error:", error.response.data);
-    setToast({
-      message: error.response.data.message || "Gagal menambahkan barang.",
-      type: "error"
-    });
-  } else {
-    console.error("Unexpected error:", error);
-    setToast({
-      message: "Gagal menambahkan barang.",
-      type: "error"
-    });
-  }
-}
-
+    } catch (error) {
+      if (error.response) {
+        console.log("Server error:", error.response.data);
+        setToast({
+          message: error.response.data.message || "Gagal menambahkan barang.",
+          type: "error",
+        });
+      } else {
+        console.error("Unexpected error:", error);
+        setToast({
+          message: "Gagal menambahkan barang.",
+          type: "error",
+        });
+      }
+    }
   };
 
   const numericFields = [
@@ -164,6 +204,18 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
       loading: loadingUnits,
       optionLabelKey: "name",
     },
+    brand_id: {
+      label: "Brand",
+      options: brands,
+      loading: loadingBrands,
+      optionLabelKey: "name",
+    },
+    storage_location_id: {
+      label: "Storage Locations",
+      options: storageLocations,
+      loading: loadingStorageLocations,
+      optionLabelKey: "name",
+    },
   };
 
   return (
@@ -173,7 +225,8 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
       <div className="grid grid-cols-2 max-h-[60vh] overflow-y-auto pr-2 gap-5">
         {Object.keys(initialFormState).map((key) => {
           if (selectFieldsConfig[key]) {
-            const { label, options, loading, optionLabelKey } = selectFieldsConfig[key];
+            const { label, options, loading, optionLabelKey } =
+              selectFieldsConfig[key];
             return (
               <div key={key} className="flex flex-col">
                 <label className="mb-1 font-medium">{label}</label>
@@ -200,7 +253,9 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
           return (
             <InputField
               key={key}
-              label={labelMap[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+              label={
+                labelMap[key] || key.charAt(0).toUpperCase() + key.slice(1)
+              }
               value={form[key]}
               onChange={handleChange(key)}
               placeholder={`Masukkan ${labelMap[key] || key}`}

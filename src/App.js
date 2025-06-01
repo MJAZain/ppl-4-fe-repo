@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import MasterBarangPage from "./pages/MasterBarangPage";
-import BarangMasukPage from './pages/BarangMasukPage';
+import BarangMasukPage from "./pages/BarangMasukPage";
 import RegisterUserPage from "./pages/RegisterPage";
 import AturSatuanPage from "./pages/AturSatuanPage";
 import AturKategoriPage from "./pages/AturKategoriPage";
@@ -13,6 +13,8 @@ import StockOpnamePage from "./pages/StockOpname/StockOpname";
 import DraftDetailPage from "./pages/StockOpname/DraftDetailPage";
 import LaporanBarangMasukPage from "./pages/LaporanKeuangan/LaporanBarangMasuk";
 import LaporanBarangKeluarPage from "./pages/LaporanKeuangan/LaporanBarangKeluar";
+import StorageLocationPage from "./pages/MasterData/StorageLocationPage";
+import BrandPage from "./pages/MasterData/BrandPage";
 
 function App() {
   return (
@@ -22,16 +24,27 @@ function App() {
         <Route path="/register" element={<RegisterUserPage />} />
         <Route path="/dashboard" element={<MasterBarangPage />} />
         <Route path="/barang-masuk" element={<BarangMasukPage />} />
-        <Route path="/barang-masuk-detail" element={<BarangMasukDetailPage />} />
+        <Route
+          path="/barang-masuk-detail"
+          element={<BarangMasukDetailPage />}
+        />
         <Route path="/barang-keluar" element={<BarangKeluarPage />} />
-        <Route path="/barang-keluar-detail" element={<BarangKeluarDetailPage />} />
+        <Route
+          path="/barang-keluar-detail"
+          element={<BarangKeluarDetailPage />}
+        />
         <Route path="/satuan" element={<AturSatuanPage />} />
         <Route path="/kategori" element={<AturKategoriPage />} />
         <Route path="/user" element={<AturUsersPage />} />
         <Route path="/stock-opname" element={<StockOpnamePage />} />
-        <Route path="/stock-opname/draft/:draftId" element={<DraftDetailPage />} />
+        <Route
+          path="/stock-opname/draft/:draftId"
+          element={<DraftDetailPage />}
+        />
         <Route path="/laporan-masuk" element={<LaporanBarangMasukPage />} />
         <Route path="/laporan-terjual" element={<LaporanBarangKeluarPage />} />
+        <Route path="/storage-locations" element={<StorageLocationPage />} />
+        <Route path="/brands" element={<BrandPage />} />
       </Routes>
     </Router>
   );
