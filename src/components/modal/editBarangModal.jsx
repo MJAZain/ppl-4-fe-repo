@@ -17,8 +17,8 @@ const initialFormState = {
   selling_price: "",
   wholesale_price: "",
   stock_buffer: "",
-  storage_location: "",
-  brand: "",
+  storage_location_id: "",
+  brand_id: "",
 };
 
 const labelMap = {
@@ -32,8 +32,8 @@ const labelMap = {
   selling_price: "Harga Jual",
   wholesale_price: "Harga Jual ",
   stock_buffer: "Stok Buffer",
-  storage_location: "Lokasi Obat",
-  brand: "Nama Brand",
+  storage_location_id: "Lokasi Obat",
+  brand_id: "Nama Brand",
 };
 
 function EditBarangModal({ isOpen, close, onSubmit, productId }) {
@@ -41,8 +41,12 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
   const [toast, setToast] = useState(null);
   const [categories, setCategories] = useState([]);
   const [units, setUnits] = useState([]);
+  const [storageLocations, setStorageLocations] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingUnits, setLoadingUnits] = useState(false);
+  const [loadingStorageLocations, setLoadingStorageLocations] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(false);
   const { getProductById } = useProductActions();
 
   // Load categories and units
@@ -71,41 +75,68 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
       }
     };
 
+    const fetchStorageLocations = async () => {
+      setLoadingStorageLocations(true);
+      try {
+        const res = await apiClient.get(
+          "/storage-locations?page=1&limit=10000"
+        );
+        setStorageLocations(res.data.data.data);
+      } catch (err) {
+        console.error("Failed to fetch units", err);
+      } finally {
+        setLoadingStorageLocations(false);
+      }
+    };
+
+    const fetchBrands = async () => {
+      setLoadingBrands(true);
+      try {
+        const res = await apiClient.get("/brands?page=1&limit=10000");
+        setBrands(res.data.data.data);
+      } catch (err) {
+        console.error("Failed to fetch units", err);
+      } finally {
+        setLoadingBrands(false);
+      }
+    };
+
     if (isOpen) {
       fetchCategories();
       fetchUnits();
+      fetchStorageLocations();
+      fetchBrands();
     }
   }, [isOpen]);
 
   useEffect(() => {
-  const loadProduct = async () => {
-    if (!productId || !isOpen) return;
-    try {
-      const data = await getProductById(productId);
-      const product = data.data;
+    const loadProduct = async () => {
+      if (!productId || !isOpen) return;
+      try {
+        const data = await getProductById(productId);
+        const product = data.data;
 
-      setForm({
-        name: product.name || "",
-        code: product.code || "",
-        barcode: product.barcode || "",
-        category_id: product.category_id?.toString() || "",
-        unit_id: product.unit_id?.toString() || "",
-        package_content: product.package_content ?? "",
-        purchase_price: product.purchase_price ?? "",
-        selling_price: product.selling_price ?? "",
-        wholesale_price: product.wholesale_price ?? "",
-        stock_buffer: product.stock_buffer ?? "",
-        storage_location: product.storage_location || "",
-        brand: product.brand || "",
-      });
-    } catch (err) {
-      setToast({ message: "Gagal memuat data barang.", type: "error" });
-    }
-  };
+        setForm({
+          name: product.name || "",
+          code: product.code || "",
+          barcode: product.barcode || "",
+          category_id: product.category_id?.toString() || "",
+          unit_id: product.unit_id?.toString() || "",
+          package_content: product.package_content ?? "",
+          purchase_price: product.purchase_price ?? "",
+          selling_price: product.selling_price ?? "",
+          wholesale_price: product.wholesale_price ?? "",
+          stock_buffer: product.stock_buffer ?? "",
+          storage_location_id: product.storage_location_id?.toString() || "",
+          brand_id: product.brand_id?.toString() || "",
+        });
+      } catch (err) {
+        setToast({ message: "Gagal memuat data barang.", type: "error" });
+      }
+    };
 
-  loadProduct();
-}, [productId, isOpen]);
-
+    loadProduct();
+  }, [productId, isOpen]);
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
@@ -131,8 +162,8 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
       selling_price: Number(form.selling_price),
       wholesale_price: Number(form.wholesale_price),
       stock_buffer: Number(form.stock_buffer),
-      storage_location: form.storage_location.trim(),
-      brand: form.brand.trim(),
+      storage_location_id: Number(form.storage_location_id),
+      brand_id: Number(form.brand_id),
     };
 
     if (isNaN(payload.package_content)) {
@@ -176,6 +207,18 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
       loading: loadingUnits,
       optionLabelKey: "name",
     },
+    storage_location_id: {
+      label: "Storage Location",
+      options: storageLocations,
+      loading: loadingStorageLocations,
+      optionLabelKey: "name",
+    },
+    brand_id: {
+      label: "Brand",
+      options: brands,
+      loading: loadingBrands,
+      optionLabelKey: "name",
+    },
   };
 
   return (
@@ -185,7 +228,8 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
       <div className="grid grid-cols-2 max-h-[60vh] overflow-y-auto pr-2 gap-5">
         {Object.keys(initialFormState).map((key) => {
           if (selectFieldsConfig[key]) {
-            const { label, options, loading, optionLabelKey } = selectFieldsConfig[key];
+            const { label, options, loading, optionLabelKey } =
+              selectFieldsConfig[key];
             return (
               <div key={key} className="flex flex-col">
                 <label className="mb-1 font-medium">{label}</label>
@@ -212,7 +256,9 @@ function EditBarangModal({ isOpen, close, onSubmit, productId }) {
           return (
             <InputField
               key={key}
-              label={labelMap[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+              label={
+                labelMap[key] || key.charAt(0).toUpperCase() + key.slice(1)
+              }
               value={form[key]}
               onChange={handleChange(key)}
               placeholder={`Masukkan ${labelMap[key] || key}`}

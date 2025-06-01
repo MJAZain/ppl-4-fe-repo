@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronUp, Menu, X } from "lucide-react";
 import { apiClient } from "../config/api";
@@ -10,11 +10,24 @@ export default function Sidebar() {
   const [showSetting, setShowSetting] = useState(false);
   const [showLaporan, setShowLaporan] = useState(false);
 
+  const isActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(path + "/");
+
+  const isAnyChildActiveMasterBarang =
+    isActive("/satuan") ||
+    isActive("/kategori") ||
+    isActive("/storage-locations");
+  isActive("/brands");
+  useEffect(() => {
+    if (isAnyChildActiveMasterBarang) {
+      setShowSetting(true);
+    }
+  }, [isAnyChildActiveMasterBarang]);
+
   const toggleSidebar = () => setIsOpen((prev) => !prev);
   const togglePelacakanDropdown = () => setShowPelacakan((prev) => !prev);
   const toggleSettingDropdown = () => setShowSetting((prev) => !prev);
   const toggleLaporanDropdown = () => setShowLaporan((prev) => !prev);
-  const isActive = (path) => location.pathname === path;
 
   return (
     <div className="relative">
@@ -55,10 +68,23 @@ export default function Sidebar() {
           {/* Master Setting Dropdown */}
           <button
             onClick={toggleSettingDropdown}
-            className="flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100"
+            className={`flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
+              isActive("/satuan") ||
+              isActive("/kategori") ||
+              isActive("/storage-locations")
+                ? "bg-gray-200"
+                : ""
+            }`}
           >
             <span>Setting Master Barang</span>
-            {showSetting ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {showSetting ||
+            isActive("/satuan") ||
+            isActive("/kategori") ||
+            isActive("/storage-locations") ? (
+              <ChevronUp size={18} />
+            ) : (
+              <ChevronDown size={18} />
+            )}
           </button>
 
           {showSetting && (
@@ -79,6 +105,22 @@ export default function Sidebar() {
               >
                 Master Kategori
               </Link>
+              <Link
+                to="/brands"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/brands") ? "bg-gray-200" : ""
+                }`}
+              >
+                Master Brands
+              </Link>
+              <Link
+                to="/storage-locations"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/storage-locations") ? "bg-gray-200" : ""
+                }`}
+              >
+                Master Lokasi Penyimpanan
+              </Link>
             </div>
           )}
 
@@ -88,7 +130,11 @@ export default function Sidebar() {
             className="flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100"
           >
             <span>Pelacakan Barang</span>
-            {showPelacakan ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {showPelacakan ? (
+              <ChevronUp size={18} />
+            ) : (
+              <ChevronDown size={18} />
+            )}
           </button>
 
           {showPelacakan && (
@@ -143,7 +189,6 @@ export default function Sidebar() {
           )}
 
           {/* Laporan Keuangan */}
-          
 
           {/*  */}
           <Link
@@ -165,7 +210,7 @@ export default function Sidebar() {
                 console.error("Logout API error:", err); // Optional logging
               } finally {
                 localStorage.removeItem("token"); // 🚪 Clear token
-                window.location.href = "/";       // ⏩ Redirect to login/home
+                window.location.href = "/"; // ⏩ Redirect to login/home
               }
             }}
           >
