@@ -10,15 +10,26 @@ export default function TambahBarangKeluarModal({
   onSave,
   initialData = null,
 }) {
-  const [selectedProduct, setSelectedProduct] = useState(initialData?.product || null);
-  const [quantity, setQuantity] = useState(initialData?.quantity || "");
-  const [price, setPrice] = useState(initialData?.price || "");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
 
   const [productOptions, setProductOptions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState(null);
 
-  // 🔁 Fetch products when modal opens
+  // Reset modal state on open or when initialData changes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedProduct(initialData?.product || null);
+      setQuantity(initialData?.quantity?.toString() || "");
+      setPrice(initialData?.price?.toString() || "");
+      setSearchTerm(initialData?.product?.name || "");
+      setToast(null);
+    }
+  }, [isOpen, initialData]);
+
+  // Fetch products when modal opens
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -35,11 +46,13 @@ export default function TambahBarangKeluarModal({
     }
   }, [isOpen]);
 
-  // ✅ Set selling_price when product is selected
+  // Auto-calculate price based on selected product's selling price × quantity
   useEffect(() => {
     if (selectedProduct && quantity) {
       const total = selectedProduct.selling_price * Number(quantity);
-      setPrice(total);
+      setPrice(total.toFixed(2));
+    } else {
+      setPrice("");
     }
   }, [selectedProduct, quantity]);
 
@@ -56,10 +69,18 @@ export default function TambahBarangKeluarModal({
     const newItem = {
       product: selectedProduct,
       quantity: Number(quantity),
-      price: Number(price), // ✅ This is total (quantity * selling_price)
+      price: Number(price),
     };
 
     const existing = JSON.parse(localStorage.getItem("barangList") || "[]");
+
+    const isDuplicate =
+      !initialData && existing.some((item) => item.product.id === selectedProduct.id);
+
+    if (isDuplicate) {
+      setToast({ message: "Produk ini sudah ditambahkan.", type: "error" });
+      return;
+    }
 
     const updated = initialData
       ? existing.map((item) =>
@@ -74,7 +95,13 @@ export default function TambahBarangKeluarModal({
 
   return (
     <Modal isOpen={isOpen} close={onClose}>
-      <h2 className="text-xl font-semibold mb-4">Tambah Barang</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {initialData ? "Edit Barang" : "Tambah Barang"}
+      </h2>
+
+      {toast && (
+        <div className="text-red-600 font-medium mb-4">{toast.message}</div>
+      )}
 
       <InputField
         label="Cari Produk"
@@ -107,7 +134,7 @@ export default function TambahBarangKeluarModal({
         type="number"
         value={quantity}
         onChange={(e) => setQuantity(e.target.value)}
-        placeholder="Jumlah yang dibeli"
+        placeholder="Jumlah yang dijual"
         className="w-full h-10"
       />
 
@@ -115,7 +142,7 @@ export default function TambahBarangKeluarModal({
         label="Harga Total"
         type="number"
         value={price}
-        readOnly // ✅ Prevent user from manually editing
+        readOnly
         className="w-full h-10 bg-gray-100 cursor-not-allowed"
       />
 

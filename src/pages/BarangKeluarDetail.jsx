@@ -136,7 +136,19 @@ const handleSave = async () => {
 const columns = [
   { header: "Nama Obat", accessor: "product.name" },
   { header: "Kuantitas", accessor: "quantity" },
-  { header: "Harga", accessor: "price" },
+  { header: "Harga", accessor: "price",
+    render: (row) => {
+        const value = row.price;
+
+        const formatted = new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(value);
+
+        return formatted.replace("Rp", "Rp.");
+      },
+   },
   {
     header: "Aksi",
     accessor: "actions",
@@ -158,7 +170,11 @@ const columns = [
         <h1 className="text-2xl font-bold mb-6">Barang Terjual</h1>
 
         <div className="mb-4">
-          <Button className="mb-4" onClick={() => setModalOpen(true)}>
+          <Button className="mb-4" 
+          onClick={() => {
+            setEditingItem(null); 
+            setModalOpen(true)
+          }} >
             Tambah Barang
           </Button>
         </div>

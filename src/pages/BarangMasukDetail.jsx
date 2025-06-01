@@ -12,8 +12,7 @@ import Toast from "../components/toast";
 export default function BarangMasukDetailPage() {
   const [toast, setToast] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-const [itemToDelete, setItemToDelete] = useState(null);
-
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState(null);
   const [editingItem, setEditingItem] = useState(null); // New state
@@ -101,13 +100,13 @@ const handleSave = async () => {
         date: new Date(form.date).toISOString(),
         supplier: form.supplier,
         no_faktur: form.no_faktur,
-        payment_status: form.payment_status || "LUNAS", // Optional default
+        payment_status: form.payment_status || "LUNAS",
       },
       details: barangList.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
         price: item.price,
-        total: item.price, // Total is still needed for backend calculation
+        total: item.price,
       })),
     };
 
@@ -136,7 +135,19 @@ const handleSave = async () => {
 const columns = [
   { header: "Nama Obat", accessor: "product.name" },
   { header: "Kuantitas", accessor: "quantity" },
-  { header: "Harga", accessor: "price" },
+  { header: "Harga", accessor: "price",
+    render: (row) => {
+        const value = row.price;
+
+        const formatted = new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(value);
+
+        return formatted.replace("Rp", "Rp.");
+      },
+   },
   {
     header: "Aksi",
     accessor: "actions",
@@ -159,7 +170,13 @@ const columns = [
         <h1 className="text-2xl font-bold mb-6">Barang Masuk</h1>
 
         <div className="mb-4">
-          <Button className="mb-4" onClick={() => setModalOpen(true)}>
+          <Button
+            className="mb-4"
+            onClick={() => {
+              setEditingItem(null);
+              setModalOpen(true);
+            }}
+          >
             Tambah Barang
           </Button>
         </div>

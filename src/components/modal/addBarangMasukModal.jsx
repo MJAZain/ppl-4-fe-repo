@@ -1,47 +1,75 @@
 import React, { useEffect, useState } from "react";
-import Modal from "./modal"
-import InputField from "../inputField"
+import Modal from "./modal";
+import Toast from "../toast";
+import InputField from "../inputField";
 import { apiClient } from "../../config/api";
 import Button from "../buttonComp";
 
 export default function TambahBarangModal({ isOpen, onClose, onSave, initialData = null }) {
-  const [selectedProduct, setSelectedProduct] = useState(initialData?.product || null);
-  const [quantity, setQuantity] = useState(initialData?.quantity || "");
-  const [price, setPrice] = useState(initialData?.price || "");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
 
   const [productOptions, setProductOptions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setSelectedProduct(initialData.product);
+        setQuantity(initialData.quantity.toString());
+        setPrice(initialData.price.toString());
+        setSearchTerm(initialData.product.name);
+      } else {
+        setSelectedProduct(null);
+        setQuantity("");
+        setPrice("");
+        setSearchTerm("");
+      }
+    }
+  }, [isOpen, initialData]);
 
   useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const res = await apiClient.get("/products/");
-      setProductOptions(res.data?.data || []);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-      setProductOptions([]);
-    }
-  };
+    const fetchProducts = async () => {
+      try {
+        const res = await apiClient.get("/products/");
+        setProductOptions(res.data?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setProductOptions([]);
+      }
+    };
 
-  if (isOpen) {
-    fetchProducts();
-  }
-}, [isOpen]);
+    if (isOpen) {
+      fetchProducts();
+    }
+  }, [isOpen]);
 
   const filteredProducts = productOptions.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSave = () => {
-   const newItem = {
+    if (!selectedProduct || !quantity || !price) {
+      setToast({ message: "Semua field harus diisi", type: "error" });
+      return;
+    }
+
+    const existing = JSON.parse(localStorage.getItem("barangList") || "[]");
+
+    const isDuplicate = !initialData && existing.some(item => item.product.id === selectedProduct.id);
+
+    if (isDuplicate) {
+      setToast({ message: "Produk ini sudah ditambahkan.", type: "error" });
+      return;
+    }
+
+    const newItem = {
       product: selectedProduct,
       quantity: Number(quantity),
       price: Number(price),
     };
-
-    const existing = JSON.parse(localStorage.getItem("barangList") || "[]");
 
     let updated;
     if (initialData) {
@@ -59,7 +87,9 @@ export default function TambahBarangModal({ isOpen, onClose, onSave, initialData
 
   return (
     <Modal isOpen={isOpen} close={onClose}>
-      <h2 className="text-xl font-semibold mb-4">Tambah Barang</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {initialData ? "Edit Barang" : "Tambah Barang"}
+      </h2>
 
       <InputField
         label="Cari Produk"
@@ -69,22 +99,23 @@ export default function TambahBarangModal({ isOpen, onClose, onSave, initialData
         className="w-full mb-2 h-10"
       />
 
-      <div className="border p-2 rounded mb-4 max-h-40 overflow-y-auto">
+      <ul className="border p-2 rounded mb-4 max-h-40 overflow-y-auto">
         {filteredProducts.map((product) => (
-  <li
-    key={product.id}
-    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-    onClick={() => {
-      setSelectedProduct(product);
-      setSearchTerm(product.name);
-    }}
-  >
-    <div className="font-medium">{product.name}</div>
-    <div className="text-sm text-gray-600">{product.code} – {product.brand}</div>
-  </li>
-))}
-
-      </div>
+          <li
+            key={product.id}
+            className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+            onClick={() => {
+              setSelectedProduct(product);
+              setSearchTerm(product.name);
+            }}
+          >
+            <div className="font-medium">{product.name}</div>
+            <div className="text-sm text-gray-600">
+              {product.code} – {product.brand}
+            </div>
+          </li>
+        ))}
+      </ul>
 
       <InputField
         label="Kuantitas"
@@ -104,11 +135,16 @@ export default function TambahBarangModal({ isOpen, onClose, onSave, initialData
         className="w-full h-10"
       />
 
-      <Button
-        onClick={handleSave}
-      >
+      <Button onClick={handleSave} className="mt-4">
         Simpan
       </Button>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
     </Modal>
   );
 }
