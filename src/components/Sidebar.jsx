@@ -6,10 +6,14 @@ import { apiClient } from "../config/api";
 export default function Sidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [showMaster, setShowMaster] = useState(false);
+  const [showPelacakan, setShowPelacakan] = useState(false);
+  const [showSetting, setShowSetting] = useState(false);
+  const [showLaporan, setShowLaporan] = useState(false);
 
   const toggleSidebar = () => setIsOpen((prev) => !prev);
-  const toggleMasterDropdown = () => setShowMaster((prev) => !prev);
+  const togglePelacakanDropdown = () => setShowPelacakan((prev) => !prev);
+  const toggleSettingDropdown = () => setShowSetting((prev) => !prev);
+  const toggleLaporanDropdown = () => setShowLaporan((prev) => !prev);
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -48,16 +52,46 @@ export default function Sidebar() {
             Tabel Barang
           </Link>
 
-          {/* Master Barang Dropdown */}
+          {/* Master Setting Dropdown */}
           <button
-            onClick={toggleMasterDropdown}
+            onClick={toggleSettingDropdown}
             className="flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100"
           >
-            <span>Master Barang</span>
-            {showMaster ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            <span>Setting Master Barang</span>
+            {showSetting ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
 
-          {showMaster && (
+          {showSetting && (
+            <div className="ml-4">
+              <Link
+                to="/satuan"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/satuan") ? "bg-gray-200" : ""
+                }`}
+              >
+                Master Satuan
+              </Link>
+              <Link
+                to="/kategori"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/kategori") ? "bg-gray-200" : ""
+                }`}
+              >
+                Master Kategori
+              </Link>
+            </div>
+          )}
+
+          {/* Pelacakan Barang Dropdown */}
+          <button
+            onClick={togglePelacakanDropdown}
+            className="flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100"
+          >
+            <span>Pelacakan Barang</span>
+            {showPelacakan ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+
+          {showPelacakan && (
             <div className="ml-4">
               <Link
                 to="/barang-masuk"
@@ -78,45 +112,38 @@ export default function Sidebar() {
             </div>
           )}
 
-          {/* Laporan Keuangan */}
-          <Link
-            to="/laporan-masuk"
-            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
-              isActive("/laporan-masuk") ? "bg-gray-200" : ""
-            }`}
+          {/* Laporan Barang Dropdown */}
+          <button
+            onClick={toggleLaporanDropdown}
+            className="flex items-center justify-between w-full px-4 py-2 mt-2 rounded hover:bg-gray-100"
           >
-            Laporan Barang Masuk
-          </Link>
+            <span>Laporan Barang</span>
+            {showLaporan ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+
+          {showLaporan && (
+            <div className="ml-4">
+              <Link
+                to="/laporan-masuk"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/laporan-masuk") ? "bg-gray-200" : ""
+                }`}
+              >
+                Laporan Barang Masuk
+              </Link>
+              <Link
+                to="/laporan-terjual"
+                className={`block px-4 py-1 rounded hover:bg-gray-100 ${
+                  isActive("/laporan-terjual") ? "bg-gray-200" : ""
+                }`}
+              >
+                Laporan Barang Terjual
+              </Link>
+            </div>
+          )}
 
           {/* Laporan Keuangan */}
-          <Link
-            to="/laporan-terjual"
-            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
-              isActive("/laporan-terjual") ? "bg-gray-200" : ""
-            }`}
-          >
-            Laporan Barang Terjual
-          </Link>
-
-          {/*  */}
-          <Link
-            to="/satuan"
-            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
-              isActive("/satuan") ? "bg-gray-200" : ""
-            }`}
-          >
-            Atur Satuan
-          </Link>
-
-          {/*  */}
-          <Link
-            to="/kategori"
-            className={`block px-4 py-2 mt-2 rounded hover:bg-gray-100 ${
-              isActive("/kategori") ? "bg-gray-200" : ""
-            }`}
-          >
-            Atur Kategori
-          </Link>
+          
 
           {/*  */}
           <Link

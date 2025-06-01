@@ -1,7 +1,6 @@
 import React from "react";
 import ActionMenu from "./ActionMenu";
 
-// Helper to safely access nested values
 const getNestedValue = (obj, accessor) => {
   if (typeof accessor !== "string") return undefined;
 

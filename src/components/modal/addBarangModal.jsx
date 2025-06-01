@@ -20,6 +20,21 @@ const initialFormState = {
   brand: "",
 };
 
+const labelMap = {
+  name: "Nama",
+  code: "Kode Obat",
+  barcode: "Barcode",
+  category_id: "Kategori Obat",
+  unit_id: "Satuan Obat",
+  package_content: "Banyaknya Isi",
+  purchase_price: "Harga Beli",
+  selling_price: "Harga Jual",
+  wholesale_price: "Harga Jual ",
+  stock_buffer: "Stok Buffer",
+  storage_location: "Lokasi Obat",
+  brand: "Nama Brand",
+};
+
 
 function AddBarangModal({ isOpen, close, onSubmit }) {
   const [form, setForm] = useState(initialFormState);
@@ -30,12 +45,11 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
   const [loadingUnits, setLoadingUnits] = useState(false);
 
   useEffect(() => {
-    // Fetch categories
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
         const res = await apiClient.get("/categories/");
-        setCategories(res.data.data); // assuming res.data is an array
+        setCategories(res.data.data);
       } catch (err) {
         console.error("Failed to fetch categories", err);
       } finally {
@@ -43,7 +57,6 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
       }
     };
 
-    // Fetch units
     const fetchUnits = async () => {
       setLoadingUnits(true);
       try {
@@ -76,7 +89,17 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
     return;
   }
 
-  // Prepare payload with correct types and keys
+  for (let field of numericFields) {
+    const value = Number(form[field]);
+    if (isNaN(value) || value < 1) {
+      setToast({
+        message: `${labelMap[field] || field} harus diisi dengan angka lebih dari 0.`,
+        type: "error"
+      });
+      return;
+    }
+  }
+
   const payload = {
     name: form.name.trim(),
     code: form.code.trim(),
@@ -128,29 +151,44 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
     "package_content",
   ];
 
+  const selectFieldsConfig = {
+    category_id: {
+      label: "Kategori",
+      options: categories,
+      loading: loadingCategories,
+      optionLabelKey: "name",
+    },
+    unit_id: {
+      label: "Satuan",
+      options: units,
+      loading: loadingUnits,
+      optionLabelKey: "name",
+    },
+  };
+
   return (
     <Modal isOpen={isOpen} close={close}>
       <h2 className="text-xl font-semibold mb-4 text-center">Tambah Barang</h2>
 
       <div className="grid grid-cols-2 max-h-[60vh] overflow-y-auto pr-2 gap-5">
         {Object.keys(initialFormState).map((key) => {
-          // For category_id and unit_id render select dropdown
-          if (key === "category_id") {
+          if (selectFieldsConfig[key]) {
+            const { label, options, loading, optionLabelKey } = selectFieldsConfig[key];
             return (
               <div key={key} className="flex flex-col">
-                <label className="mb-1 font-medium">Category</label>
-                {loadingCategories ? (
-                  <p>Loading categories...</p>
+                <label className="mb-1 font-medium">{label}</label>
+                {loading ? (
+                  <p>Loading {label.toLowerCase()}...</p>
                 ) : (
                   <select
-                    value={form.category_id}
+                    value={form[key]}
                     onChange={handleChange(key)}
                     className="w-full h-10 border rounded px-2"
                   >
-                    <option value="">Select category</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
+                    <option value="">{`Pilih ${label}`}</option>
+                    {options.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option[optionLabelKey]}
                       </option>
                     ))}
                   </select>
@@ -159,39 +197,15 @@ function AddBarangModal({ isOpen, close, onSubmit }) {
             );
           }
 
-          if (key === "unit_id") {
-            return (
-              <div key={key} className="flex flex-col">
-                <label className="mb-1 font-medium">Unit</label>
-                {loadingUnits ? (
-                  <p>Loading units...</p>
-                ) : (
-                  <select
-                    value={form.unit_id}
-                    onChange={handleChange(key)}
-                    className="w-full h-10 border rounded px-2"
-                  >
-                    <option value="">Select unit</option>
-                    {units.map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            );
-          }
-
-          // Default input field for others
           return (
             <InputField
               key={key}
-              label={key.charAt(0).toUpperCase() + key.slice(1)}
+              label={labelMap[key] || key.charAt(0).toUpperCase() + key.slice(1)}
               value={form[key]}
               onChange={handleChange(key)}
-              placeholder={`Masukkan ${key}`}
+              placeholder={`Masukkan ${labelMap[key] || key}`}
               type={numericFields.includes(key) ? "number" : "text"}
+              min={numericFields.includes(key) ? 1 : undefined}
               className="w-full h-10"
             />
           );

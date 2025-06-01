@@ -39,7 +39,7 @@ const Toast = ({ message, type = "success", onClose, duration = 3000 }) => {
 
   return (
     <div
-      className={`fixed top-0 right-0 left-0 z-50 text-center p-2 h-10 flex items-center justify-center space-x-3 ${bgColors[type]} ${textColors[type]}`}
+      className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 min-w-[250px] max-w-md rounded shadow-lg flex items-center space-x-3 ${bgColors[type]} ${textColors[type]}`}
     >
       <Icon className="h-6 w-6" />
       <span className="font-medium">{message}</span>
