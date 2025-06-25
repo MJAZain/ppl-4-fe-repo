@@ -4,6 +4,7 @@ import InputField from "../inputField";
 import Button from "../buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../toast";
+import { getFriendlyErrorMessage } from "../../utils/errorHandler";
 
 const initialFormState = {
   full_name: "",
@@ -71,7 +72,8 @@ export default function AddUserModal({ isOpen, close, onSuccess }) {
       onSuccess?.();
       setForm(initialFormState);
     } catch (err) {
-      setToast({ message: err.message || "Gagal menambahkan user.", type: "error" });
+      const message = getFriendlyErrorMessage(err);
+      setToast({ message, type: "error" });
     } finally {
       setLoading(false);
     }

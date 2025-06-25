@@ -2,12 +2,17 @@ import React, { useState } from "react";
 import useBrandActions from "../../hooks/useBrandActions";
 import InputField from "../inputField";
 
+import Toast from "../toast";
+import {getFriendlyErrorMessage} from "../../utils/errorHandler"
+
 const AddBrandModal = ({ isOpen, close, onSuccess }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const { addBrand } = useBrandActions();
+
+  const [toast, setToast] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
@@ -31,13 +36,8 @@ const AddBrandModal = ({ isOpen, close, onSuccess }) => {
       setDescription("");
       setErrors({});
     } catch (error) {
-      console.error("Failed to add brand:", error);
-      setErrors({
-        form:
-          error.response?.data?.message ||
-          error.message ||
-          "Gagal menambahkan data brand.",
-      });
+      const message = getFriendlyErrorMessage(error);
+      setToast({ message, type: "error" });
     } finally {
       setIsLoading(false);
     }

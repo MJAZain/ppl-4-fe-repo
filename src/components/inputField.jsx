@@ -3,35 +3,50 @@ import React from "react";
 function InputField({
   label,
   value,
-  onChange,
+  onChange, 
   type = "text",
   placeholder,
   className = "",
   id,
   isRequired,
   error,
+  min,
 }) {
   const isNumeric = type === "number";
+  const isPhoneField = type === 'phone';
 
   const handleKeyDown = (e) => {
+    // Block unwanted characters for number fields
     if (isNumeric) {
       const invalidChars = ["e", "E", "+", "-", "."];
       if (invalidChars.includes(e.key)) {
         e.preventDefault();
       }
     }
+
+    // Allow only digits for phone fields
+    if (isPhoneField && !/^\d$/.test(e.key) && e.key !== "Backspace" && e.key !== "Tab") {
+      e.preventDefault();
+    }
   };
 
   const handleInput = (e) => {
+    let inputValue = e.target.value;
+
+    // For phone fields: strip out anything that's not a digit
+    if (isPhoneField) {
+      inputValue = inputValue.replace(/\D/g, ""); // Remove non-digit characters
+      e.target.value = inputValue;
+    }
+
+    // For number fields: remove leading zeroes
     if (isNumeric) {
-      let inputValue = e.target.value;
-      if (/^0\d+/.test(inputValue)) {
-        inputValue = inputValue.replace(/^0+/, "");
-        e.target.value = inputValue;
-        if (onChange) {
-          onChange({ target: { name: e.target.name, value: inputValue } });
-        }
-      }
+      inputValue = inputValue.replace(/^0+/, "");
+      e.target.value = inputValue;
+    }
+
+    if (onChange) {
+      onChange({ target: { name: e.target.name, value: inputValue } });
     }
   };
 
@@ -61,7 +76,7 @@ function InputField({
         onKeyDown={handleKeyDown}
         onInput={handleInput}
         onWheel={handleWheel}
-        min={isNumeric ? 1 : undefined}
+        min={min || (isNumeric ? 1 : undefined)}
         placeholder={placeholder}
         className={`
           border ${

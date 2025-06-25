@@ -1,51 +1,49 @@
 import React, { useState, useEffect } from "react";
-import useSearch from "../hooks/useSearch";
-import useProductActions from "../hooks/useProductsAction";
+import useSearch from "../../hooks/useSearch";
+import useKategoriActions from "./useKategoriActions";
 import { useNavigate } from "react-router-dom";
 
-import { apiClient } from "../config/api";
+import { apiClient } from "../../config/api";
 import { PlusIcon } from "@heroicons/react/24/solid";
 
-import ActionMenu from "../components/ActionMenu";
-import SearchBar from "../components/SearchBar";
-import DataTable from "../components/tableCompo";
-import Button from "../components/buttonComp";
-import BarangModal from "../components/modal/BarangModal";
-import Sidebar from "../components/Sidebar";
-import ConfirmDialog from "../components/ConfirmDialog";
-import Toast from "../components/toast";
+import ActionMenu from "../../components/ActionMenu";
+import SearchBar from "../../components/SearchBar";
+import DataTable from "../../components/tableCompo";
 
-function MasterBarangPage() {
-  const [barangList, setBarangList] = useState([]);
+import KategoriModal from "./KategoriModal";
+import Sidebar from "../../components/Sidebar";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import Toast from "../../components/toast";
+
+function AturKategoriPage() {
+  const [kategoriList, setKategoriList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
-  const [modalProduct, setModalProduct] = useState(null);
+  const [modalKategori, setModalKategori] = useState(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const navigate = useNavigate();
-  const { getProductById, deleteProduct } = useProductActions();
+  const { getKategoriById, deleteKategori } = useKategoriActions();
 
-  const fetchBarang = async () => {
+  const fetchKategori = async () => {
     try {
-      const response = await apiClient.get("/products/");
+      const response = await apiClient.get("/categories/");
       return response.data;
     } catch (err) {
-      setToast({
-        message: "Barang gagal diambil",
-        type: "error",
-      });
+      setToast({ message: "Data gagal diambil", type: "error" });
       console.error("Fetch error:", err);
       return [];
     }
   };
 
-  const reloadBarang = async () => {
-    const data = await fetchBarang();
+  const reloadKategori = async () => {
+    const data = await fetchKategori();
     let items = [];
 
     if (Array.isArray(data)) {
@@ -57,30 +55,27 @@ function MasterBarangPage() {
       items = [];
     }
 
-    setBarangList(items);
+    setKategoriList(items);
   };
 
   useEffect(() => {
-    reloadBarang().finally(() => setLoading(false));
+    reloadKategori().finally(() => setLoading(false));
   }, []);
 
   const openAddModal = () => {
     setModalMode("add");
-    setModalProduct(null);
+    setModalKategori(null);
     setModalOpen(true);
   };
 
   const openEditModal = async (id) => {
     try {
-      const product = await getProductById(id);
-      setModalProduct(product);
+      const kategori = await getKategoriById(id);
+      setModalKategori(kategori);
       setModalMode("edit");
       setModalOpen(true);
     } catch (err) {
-      setToast({
-        message: "Barang gagal diambil",
-        type: "error",
-      });
+      setToast({ message: "Kategori gagal diambil", type: "error" });
     }
   };
 
@@ -96,9 +91,9 @@ function MasterBarangPage() {
 
   const handleConfirmDelete = async () => {
     try {
-      await deleteProduct(deleteTargetId);
-      await reloadBarang();
-      setToast({ message: "Barang berhasil dihapus", type: "success" });
+      await deleteKategori(deleteTargetId);
+      await reloadKategori();
+      setToast({ message: "Data berhasil dihapus", type: "success" });
     } catch (err) {
       alert("Gagal menghapus data.");
     } finally {
@@ -108,42 +103,26 @@ function MasterBarangPage() {
   };
 
   const handleModalSuccess = async () => {
-    await reloadBarang();
+    await reloadKategori();
     setToast({
       message:
         modalMode === "edit"
-          ? "Barang berhasil diperbarui"
-          : "Barang berhasil ditambahkan",
+          ? "Data berhasil diperbarui"
+          : "Data berhasil ditambahkan",
       type: "success",
     });
     setModalOpen(false);
-    setModalProduct(null);
+    setModalKategori(null);
   };
 
-  const { searchTerm, setSearchTerm, filteredData } = useSearch(barangList, [
-    "name",
-    "code",
-    "barcode",
-    "category.name",
-    "brand.name",
-    "unit.name",
-    "storage_location.name",
-    "drug_category.name",
-  ]);
+  const { searchTerm, setSearchTerm, filteredData } = useSearch(
+    kategoriList,
+    ["name"]
+  );
 
   const columns = [
     { header: "Nama", accessor: "name" },
-    { header: "SKU", accessor: "code" },
-    { header: "Barcode", accessor: "barcode" },
-    { header: "Golongan Obat", accessor: (item) => item.drug_category?.name || "Tidak ada Data" },
-    { header: "Kategori Obat", accessor: (item) => item.category?.name || "Tidak ada Data" },
-    { header: "Satuan", accessor: (item) => item.unit?.name || "Tidak ada Data" },
-    { header: "Harga Jual", accessor: "selling_price" },
-    { header: "Lokasi", accessor: (item) => item.storage_location?.name || "Tidak ada Data" },
-    { header: "Merk", accessor: (item) => item.brand?.name || "Tidak ada Data" },
-    { header: "Stok Minimal", accessor: "min_stock" || "Tidak ada Data"},
-    { header: "Dosis", accessor: "dosage_description" || "Tidak ada Data"},
-    { header: "Komposisi", accessor: "composition_description" || "Tidak ada Data"},
+    { header: "Deskripsi", accessor: "description" },
     {
       header: "Pilih Aksi",
       accessor: "actions",
@@ -167,8 +146,8 @@ function MasterBarangPage() {
         <Sidebar />
       </div>
 
-      <div className="p-5">
-        <h1 className="text-2xl font-bold mb-6">Daftar Barang</h1>
+      <div className="p-5 w-full py-10">
+        <h1 className="text-2xl font-bold mb-6">Daftar Kategori</h1>
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
         <div className="border-1 rounded-md border-gray-300 bg-white p-5">
@@ -178,32 +157,28 @@ function MasterBarangPage() {
               className="flex items-center text-blue-700 font-semibold space-x-1 bg-transparent border border-blue-700 py-2 px-4 rounded-md"
             >
               <PlusIcon className="w-4 h-4" />
-              <span>Tambah Barang</span>
+              <span>Tambah Kategori</span>
             </button>
           </div>
 
           <div className="max-w-[1121px]">
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              showIndex={true}
-            />
+            <DataTable columns={columns} data={filteredData} showIndex={true} />
           </div>
         </div>
       </div>
 
-      <BarangModal
+      <KategoriModal
         isOpen={modalOpen}
         close={() => setModalOpen(false)}
         onSuccess={handleModalSuccess}
         mode={modalMode}
-        product={modalProduct}
+        kategori={modalKategori}
       />
 
       <ConfirmDialog
         isOpen={isConfirmOpen}
         title="Konfirmasi Penghapusan"
-        description="Apakah Anda yakin ingin menghapus obat ini?"
+        description="Apakah Anda yakin ingin menghapus kategori ini?"
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
       />
@@ -219,4 +194,4 @@ function MasterBarangPage() {
   );
 }
 
-export default MasterBarangPage;
+export default AturKategoriPage;

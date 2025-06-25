@@ -16,6 +16,16 @@ const getNestedValue = (obj, accessor) => {
   return value;
 };
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+
 function DataTable({
   columns,
   data,
@@ -70,21 +80,22 @@ function DataTable({
                 {columns.map((col, colIndex) => {
                   let cellValue;
                   if (typeof col.accessor === "function" && !col.render) {
+                    cellValue = col.accessor(row, rowIndex);
                   } else if (typeof col.accessor === "string" && !col.render) {
                     cellValue = getNestedValue(row, col.accessor);
                   }
 
                   return (
                     <td
-                      key={`${row.id || rowIndex}-${
-                        col.accessor || col.header || colIndex
-                      }`}
+                      key={`${row.id || rowIndex}-${col.accessor || col.header || colIndex}`}
                       className="px-4 py-3 border-b border-gray-400 text-center text-[18px] leading-[24px] text-black font-[Open_Sans] font-normal"
                     >
                       {col.render ? (
                         col.render(row, rowIndex)
                       ) : col.isAction && col.getActions ? (
                         <ActionMenu actions={col.getActions(row)} />
+                      ) : col.isDate ? (
+                        formatDate(cellValue)
                       ) : (
                         cellValue ?? "-"
                       )}
