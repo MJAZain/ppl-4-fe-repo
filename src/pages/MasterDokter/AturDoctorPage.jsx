@@ -82,9 +82,9 @@ function AturDoctorPage() {
     try {
       await deleteDoctor(deleteTargetId);
       await reloadDoctors();
-      setToast({ message: "Data berhasil dihapus", type: "success" });
+      setToast({ message: "Dokter berhasil dinonaktifkan", type: "success" });
     } catch (err) {
-      alert("Gagal menghapus data.");
+      alert("Gagal menonaktifkan dokter.");
     } finally {
       setIsConfirmOpen(false);
       setDeleteTargetId(null);
@@ -112,12 +112,28 @@ function AturDoctorPage() {
 
   const columns = [
     { header: "Nama Dokter", accessor: "full_name" },
-    { header: "Spesialisasi", accessor: "specialty" },
+    { header: "Spesialisasi", accessor: "specialization" },
     { header: "Nomor STR", accessor: "str_number" },
     { header: "No. Hp", accessor: "phone_number" },
     { header: "Alamat Praktik", accessor: "practice_address" },
     { header: "Email", accessor: "email" },
-    { header: "Status", accessor: "status" },
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row) => {
+        const value = row.status;
+        const isAktif = value === "Aktif";
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-medium ${
+              isAktif ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {value}
+          </span>
+        );
+      },
+    },
     {
       header: "Pilih Aksi",
       accessor: "actions",
@@ -126,7 +142,7 @@ function AturDoctorPage() {
         <ActionMenu
           actions={[
             { label: "Edit", onClick: () => openEditModal(item.id) },
-            { label: "Delete", onClick: () => handleDeleteRequest(item.id) },
+            //{ label: "Non-Aktifkan", onClick: () => handleDeleteRequest(item.id) },
           ]}
         />
       ),

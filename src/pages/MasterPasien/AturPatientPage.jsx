@@ -33,7 +33,7 @@ function AturPatientPage() {
   const fetchPatients = async () => {
     try {
       const response = await apiClient.get("/patients/");
-      return response.data;
+      return response.data.data;
     } catch (err) {
       setToast({ message: "Data gagal diambil", type: "error" });
       console.error("Fetch error:", err);

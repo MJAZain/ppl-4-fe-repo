@@ -8,12 +8,12 @@ import { getFriendlyErrorMessage } from "../../utils/errorHandler";
 
 const fields = [
   { accessor: "full_name", label: "Nama Dokter" },
-  { accessor: "specialty", label: "Spesialisasi" },
+  { accessor: "specialization", label: "Spesialisasi" },
   { accessor: "str_number", label: "Nomor STR" },
   { accessor: "phone_number", label: "No. Hp", type: "phone"},
   { accessor: "practice_address", label: "Alamat Praktik" },
   { accessor: "email", label: "Email" },
-  { accessor: "status", label: "Status", type: "select", options: ["Aktif", "Tidak Aktif"] },
+  { accessor: "status", label: "Status", type: "select", options: ["Aktif", "Nonaktif"] },
 ];
 
 export default function DoctorModal({ isOpen, close, onSuccess, mode = "add", doctor = null }) {
@@ -30,13 +30,17 @@ export default function DoctorModal({ isOpen, close, onSuccess, mode = "add", do
   };
 
   useEffect(() => {
-    if (mode === "edit" && doctor) {
-      const base = generateInitialFormState();
-      setForm({ ...base, ...doctor });
-    } else {
-      setForm(generateInitialFormState());
+    if (isOpen) {
+      setToast(null);
+      if (mode === "edit" && doctor) {
+        const base = generateInitialFormState();
+        setForm({ ...base, ...doctor });
+      } else {
+        setForm(generateInitialFormState());
+      }
     }
-  }, [mode, doctor]);
+  }, [isOpen, mode, doctor]);
+
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });

@@ -8,20 +8,40 @@ import { getFriendlyErrorMessage } from "../../utils/errorHandler";
 
 const fields = [
   { accessor: "full_name", label: "Nama Pasien" },
-  { accessor: "gender", label: "Jenis Kelamin", type:"select", options:["Pria", "Wanita"] },
+  {
+    accessor: "gender",
+    label: "Jenis Kelamin",
+    type: "select",
+    options: [
+      { label: "Pria", value: "P" },
+      { label: "Wanita", value: "W" }
+    ]
+  },
   { accessor: "place_of_birth", label: "Tempat Lahir" },
   { accessor: "date_of_birth", label: "Tanggal Lahir", type: "date" },
   { accessor: "address", label: "Alamat" },
   { accessor: "phone_number", label: "No. Hp", type: "phone" },
-  { accessor: "patient_type", label: "Jenis Pasien" },
-  { accessor: "identity_number", label: "NIK", type:"phone" },
-  { accessor: "guarantor_name", label: "Nama Penjamin" },
+  { accessor: "patient_type", label: "Jenis Pasien", type: "select",     
+    options: [
+        { label: "Umum", value: "Umum" },
+        { label: "BPJS PBI", value: "BPJS PBI" },
+        { label: "BPJS PBPU", value: "BPJS PBPU" },
+        { label: "Jamkesda", value: "Jamkesda" },
+        { label: "Jampersal", value: "Jampersal" },
+        { label: "Asuransi Swasta", value: "Asuransi Swasta" }
+      ]
+  },
+  { accessor: "identity_number", label: "NIK", type: "phone" },
+  { accessor: "guarantor_name", label: "Nama Penjamin (Opsional)" },
   {
     accessor: "status",
     label: "Status",
     type: "select",
-    options: ["Aktif", "Tidak Aktif"],
-  },
+    options: [
+      { label: "Aktif", value: "Aktif" },
+      { label: "Nonaktif", value: "Nonaktif" }
+    ]
+  }
 ];
 
 export default function PatientModal({
@@ -29,7 +49,7 @@ export default function PatientModal({
   close,
   onSuccess,
   mode = "add",
-  patient = null,
+  patient = null
 }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -44,33 +64,47 @@ export default function PatientModal({
   };
 
   useEffect(() => {
-    if (mode === "edit" && patient) {
-      const base = generateInitialFormState();
-      setForm({ ...base, ...patient });
-    } else {
-      setForm(generateInitialFormState());
+    if (isOpen) {
+      if (mode === "edit" && patient) {
+        const base = generateInitialFormState();
+        setForm({ ...base, ...patient });
+      } else {
+        setForm(generateInitialFormState());
+       }
     }
-  }, [mode, patient]);
+
+  }, [isOpen, mode, patient]);
 
   const handleChange = (key) => (e) => {
-    setForm({ ...form, [key]: e.target.value });
+    const value = e.target.value;
+    console.debug(`Field changed: ${key} = ${value}`);
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    const allFilled = Object.values(form).every(
-      (val) => val?.toString().trim() !== ""
-    );
+    console.debug("🔎 Submitting form:", form);
+
+    const allFilled = Object.entries(form).every(([key, val]) => {
+      const required = key !== "guarantor_name";
+      return !required || (val?.toString().trim() !== "");
+    });
+
+    console.debug("✅ All required fields filled:", allFilled);
+
     if (!allFilled) {
       setToast({ message: "Semua kolom harus diisi.", type: "error" });
+      console.warn("⚠️ Form validation failed.");
       return;
     }
 
     setLoading(true);
     try {
       if (mode === "edit" && patient?.id) {
+        console.log(`📤 Updating patient ID ${patient.id}`);
         await apiClient.put(`/patients/${patient.id}`, form);
         setToast({ message: "Pasien berhasil diperbarui!", type: "success" });
       } else {
+        console.log("📤 Creating new patient...");
         await apiClient.post("/patients/", form);
         setToast({ message: "Pasien berhasil ditambahkan!", type: "success" });
       }
@@ -79,9 +113,11 @@ export default function PatientModal({
       close();
     } catch (err) {
       const message = getFriendlyErrorMessage(err);
+      console.error("❌ Submit failed:", err);
       setToast({ message, type: "error" });
     } finally {
       setLoading(false);
+      console.log("📦 Submission finished.");
     }
   };
 
@@ -103,10 +139,10 @@ export default function PatientModal({
                     onChange={handleChange(accessor)}
                     className="border border-gray-300 rounded-md px-3 py-2"
                   >
-                    <option value="">Pilih {label} </option>
+                    <option value="">Pilih {label}</option>
                     {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
