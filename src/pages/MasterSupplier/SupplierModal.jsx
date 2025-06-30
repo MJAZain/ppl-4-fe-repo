@@ -15,7 +15,7 @@ const fields = [
   { header: "Email", accessor: "email" },
   { header: "Nama Kontak Person", accessor: "contact_person" },
   { header: "Nomor Kontak Person", accessor: "contact_number", type: "phone" },
-  { header: "Status", accessor: "status", type:"select", options:["Aktif", "Tidak Aktif"] },
+  { header: "Status", accessor: "status", type:"select", options:["Aktif", "Nonaktif"] },
 ];
 
 export default function SupplierModal({ isOpen, close, onSuccess, mode = "add", supplier = null }) {
@@ -51,6 +51,7 @@ export default function SupplierModal({ isOpen, close, onSuccess, mode = "add", 
 
   useEffect(() => {
     if (isOpen) {
+      setToast(null);
       if (mode === "edit" && supplier) {
       const base = generateInitialFormState();
       const populated = { ...base, ...supplier };

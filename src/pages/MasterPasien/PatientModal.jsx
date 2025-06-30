@@ -65,6 +65,7 @@ export default function PatientModal({
 
   useEffect(() => {
     if (isOpen) {
+      setToast(null);
       if (mode === "edit" && patient) {
         const base = generateInitialFormState();
         setForm({ ...base, ...patient });

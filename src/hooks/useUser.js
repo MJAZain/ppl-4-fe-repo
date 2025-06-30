@@ -34,7 +34,6 @@ const useLogin = () => {
         throw new Error("NO_TOKEN");
       }
 
-      // Save to localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -49,10 +48,17 @@ const useLogin = () => {
 
         if (status === 400 && (!email || !password)) {
           message = "Email dan Password harus diisi.";
-        } else if (status === 401 || serverMessage?.includes("invalid")) {
-          message = "Email atau Password salah.";
+        } else if (status === 401) {
+          if (serverMessage?.includes("inactive")) {
+            message = "Akun Anda telah dinonaktifkan.";
+          } else if (serverMessage?.includes("invalid")) {
+            message = "Email atau Password salah.";
+          } else {
+            message = "Login gagal. Periksa kembali data Anda.";
+          }
         } else if (status === 403) {
-          message = "Akun Anda tidak memiliki izin untuk masuk.";
+          navigate("/login?error=inactive");
+          return;
         } else if (status >= 500) {
           message = "Server sedang bermasalah. Silakan coba beberapa saat lagi.";
         } else {

@@ -66,6 +66,22 @@ export default function Sidebar() {
           >
             Tabel Barang
           </Link>
+          <Link
+            to="/shift-resep"
+            className={`block px-4 py-2 rounded hover:bg-gray-100 ${
+              isActive("/shift-resep") ? "bg-gray-200" : ""
+            }`}
+          >
+            Buka Shift Kasir dengan Resep
+          </Link>
+                    <Link
+            to="/shift-tanpa-resep"
+            className={`block px-4 py-2 rounded hover:bg-gray-100 ${
+              isActive("/shift-tanpa-resep") ? "bg-gray-200" : ""
+            }`}
+          >
+            Buka Shift Kasir
+          </Link>
 
           {/* Master Setting Dropdown */}
           <button
@@ -267,6 +283,14 @@ export default function Sidebar() {
               >
                 Stock Opname
               </Link>
+                           <Link
+                to="/koreksi"
+                className={`block px-4 py-1 hover:bg-gray-100 rounded ${
+                  isActive("/koreksi") ? "bg-gray-200" : ""
+                }`}
+              >
+                Koreksi Stok
+              </Link>
 
           {/* Logout */}
           <button
@@ -278,6 +302,7 @@ export default function Sidebar() {
                 console.error("Logout API error:", err);
               } finally {
                 localStorage.removeItem("token");
+                localStorage.removeItem("user");
                 window.location.href = "/";
               }
             }}

@@ -41,21 +41,25 @@ export default function BarangModal({ isOpen, close, onSuccess, mode = "add", pr
   };
 
   useEffect(() => {
-    if (mode === "edit" && product) {
-      const base = generateInitialFormState();
-      const populated = { ...base, ...product };
+    if (isOpen) {
+      setToast(null);
+      if (mode === "edit" && product) {
+        const base = generateInitialFormState();
+        const populated = { ...base, ...product };
 
-      formFields.forEach(({ key }) => {
-        if (typeof populated[key] === "object" && populated[key] !== null) {
-          populated[key] = populated[key].id;
-        }
-      });
+        formFields.forEach(({ key }) => {
+          if (typeof populated[key] === "object" && populated[key] !== null) {
+            populated[key] = populated[key].id;
+          }
+        });
 
-      setForm(populated);
-    } else {
-      setForm(generateInitialFormState());
+        setForm(populated);
+      } else {
+        setForm(generateInitialFormState());
+      }
     }
-  }, [mode, product]);
+
+  }, [isOpen, mode, product]);
 
   useEffect(() => {
     const fetchDropdowns = async () => {

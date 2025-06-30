@@ -142,7 +142,7 @@ function AturDoctorPage() {
         <ActionMenu
           actions={[
             { label: "Edit", onClick: () => openEditModal(item.id) },
-            //{ label: "Non-Aktifkan", onClick: () => handleDeleteRequest(item.id) },
+            { label: "Non-Aktifkan", onClick: () => handleDeleteRequest(item.id) },
           ]}
         />
       ),

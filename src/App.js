@@ -28,37 +28,49 @@ import PBFProductListPage from "./pages/BarangMasukPBF/PBFProductList";
 import RiwayatPBFPage from "./pages/RiwayatTransaksi/RiwayatPBF/RiwayatPBFPage";
 import RiwayatNonPBFPage from "./pages/RiwayatTransaksi/RiwayatNonPbf/RiwayatNonPBFPage";
 
+import ResepShiftUmumPage from "./pages/Shift/ResepShiftUmumPage";
+import TanpaResepShiftUmumPage from "./pages/Shift/TanpaResepShiftUmumPage";
+
+import KoreksiFormPage from "./pages/KoreksiStok/KoreksiFormPage";
+
+import AturKaryawanPage from "./pages/MasterKaryawan/AturKaryawanPage";
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/user" element={<AturKaryawanPage />} />
+
         <Route path="/doctor" element={<AturDoctorPage />} />
         <Route path="/supplier" element={<AturSuppliersPage />} />
         <Route path="/patients" element={<AturPatientsPage />} />
         <Route path="/register" element={<RegisterUserPage />} />
         <Route path="/dashboard" element={<MasterBarangPage />} />
-       
+        <Route path="/satuan" element={<AturSatuanPage />} />
+        <Route path="/kategori" element={<AturKategoriPage />} />
         <Route path="/golongan" element={<AturGolonganObatPage />} />
-        <Route path="/barang-masuk-detail" element={<BarangMasukDetailPage />} />
+        <Route path="/storage-locations" element={<StorageLocationPage />} />
+        <Route path="/brands" element={<BrandPage />} />
+        
         <Route path="/pbf-detail" element={<PBFDetailPage />} />
         <Route path="/pbf-list" element={<PBFProductListPage />} />
         <Route path="/non-pbf-detail" element={<NonPBFDetailPage />} />
         <Route path="/non-pbf-list" element={<NonPBFProductListPage />} />
 
-        <Route path="/satuan" element={<AturSatuanPage />} />
-        <Route path="/kategori" element={<AturKategoriPage />} />
-        <Route path="/user" element={<AturUsersPage />} />
+        <Route path="/shift-resep" element={<ResepShiftUmumPage />} />
+        <Route path="/shift-tanpa-resep" element={<TanpaResepShiftUmumPage />} />
+
         <Route path="/stock-opname" element={<StockOpnamePage />} />
         <Route
           path="/stock-opname/draft/:draftId"
           element={<DraftDetailPage />}
         />
+
+        <Route path="/koreksi" element={<KoreksiFormPage />} />
+
         <Route path="/riwayat-pbf" element={<RiwayatPBFPage />} />
         <Route path="/riwayat-non-pbf" element={<RiwayatNonPBFPage />} />
-        
-        <Route path="/storage-locations" element={<StorageLocationPage />} />
-        <Route path="/brands" element={<BrandPage />} />
       </Routes>
     </Router>
   );

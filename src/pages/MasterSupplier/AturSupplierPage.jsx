@@ -9,7 +9,7 @@ import ActionMenu from "../../components/ActionMenu";
 import SearchBar from "../../components/SearchBar";
 import DataTable from "../../components/tableCompo";
 
-import SupplierModal from "./SupplierModal"; // <-- updated import
+import SupplierModal from "./SupplierModal";
 import Sidebar from "../../components/Sidebar";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Toast from "../../components/toast";
@@ -121,7 +121,21 @@ function AturSuppliersPage() {
     { header: "No. Kontak Person", accessor: "contact_number" },
     { header: "Provinsi", accessor: "province_id" },
     { header: "Kota", accessor: "city_id" },
-    { header: "Status", accessor: "status" },
+    { header: "Status", accessor: "status",
+        render: (row) => {
+        const value = row.status;
+        const isAktif = value === "Aktif";
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-medium ${
+              isAktif ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {value}
+          </span>
+        );
+      },
+     },
     {
       header: "Pilih Aksi",
       accessor: "actions",

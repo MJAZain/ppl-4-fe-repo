@@ -17,19 +17,20 @@ function RiwayatNonPBFPage() {
   const { deletePBF, loading, error } = usePBFActions();
 
   const fetchIncomingProducts = async () => {
-    console.log("[DEBUG] Fetching incoming PBF transactions from /incoming-pbf...");
+    console.log("[DEBUG] Fetching incoming Non-PBF transaction...");
     try {
       const response = await apiClient.get("/incoming-nonpbf");
-      const data = response?.data?.data || response?.data?.error;
+      const result = response?.data?.data;
 
-      console.log("[DEBUG] API Response:", data);
-      if (!Array.isArray(data)) {
-        console.warn("[WARN] Expected array but got:", typeof data, data);
+      console.log("[DEBUG] API Response:", result);
+
+      if (!Array.isArray(result?.data)) {
+        console.warn("[WARN] Expected result.data to be array, got:", typeof result?.data);
       }
 
-      return data;
+      return result.data;
     } catch (err) {
-      console.error("[ERROR] Failed to fetch incoming PBF transactions:", err);
+      console.error("[ERROR] Failed to fetch incoming Non-PBF transaction:", err);
       throw err;
     }
   };
@@ -76,16 +77,18 @@ function RiwayatNonPBFPage() {
       "order_number",
       "payment_status",
       "payment_due_date",
-      "supplier.name",
+      "supplier_name",
       "invoice_number",
     ]
   );
+
+  console.log("Filtered Data:", filteredData);
 
   const columns = [
     { header: "Nomor Transaksi", accessor: "order_number" },
     { header: "Tanggal Transaksi", accessor: "order_date", isDate: true },
     { header: "Batas Pembayaran", accessor: "payment_due_date", isDate: true },
-    { header: "Supplier", accessor: (row) => row.supplier?.name || "-" },
+    { header: "Supplier", accessor: "supplier_name" },
     { header: "Total Pembelian", accessor: "total_purchase", isCurrency: true },
     { header: "Status", accessor: "payment_status" },
     {
@@ -109,7 +112,7 @@ function RiwayatNonPBFPage() {
       </div>
 
       <div className="p-5 w-full py-10">
-        <h1 className="text-2xl font-bold mb-6">Riwayat Pemesanan Barang PBF</h1>
+        <h1 className="text-2xl font-bold mb-6">Riwayat Pemesanan Barang Non-PBF</h1>
 
         <SearchBar
           value={searchTerm}
@@ -124,8 +127,6 @@ function RiwayatNonPBFPage() {
             showIndex={true}
           />
         </div>
-
-        {/* Optional: Toast display */}
         {toast && (
           <Toast
             message={toast.message}
@@ -134,7 +135,6 @@ function RiwayatNonPBFPage() {
           />
         )}
 
-        {/* Optional: Delete confirmation UI */}
         {isConfirmOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6">

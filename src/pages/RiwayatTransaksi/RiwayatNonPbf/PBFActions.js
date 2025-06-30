@@ -22,7 +22,7 @@ export default function usePBFActions() {
   const getPBFById = useCallback(
     (id) => {
       return handleRequest(() =>
-        apiClient.get(`/incoming-pbf/${id}`).then((res) => res.data.data)
+        apiClient.get(`/incoming-nonpbf/${id}`).then((res) => res.data.data)
       );
     },
     [handleRequest]
@@ -31,7 +31,7 @@ export default function usePBFActions() {
   const updatePBF = useCallback(
     (id, payload) => {
       return handleRequest(() =>
-        apiClient.put(`/incoming-pbf/${id}`, payload).then((res) => res.data)
+        apiClient.put(`/incoming-nonpbf/${id}`, payload).then((res) => res.data)
       );
     },
     [handleRequest]
@@ -40,7 +40,7 @@ export default function usePBFActions() {
   const deletePBF = useCallback(
     (id) => {
       return handleRequest(() =>
-        apiClient.delete(`/incoming-pbf/${id}`).then((res) => res.data)
+        apiClient.delete(`/incoming-nonpbf/${id}`).then((res) => res.data)
       );
     },
     [handleRequest]
