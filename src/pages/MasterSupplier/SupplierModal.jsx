@@ -6,6 +6,8 @@ import { apiClient } from "../../config/api";
 import Toast from "../../components/toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
 import { useProvinceCityPicker } from "./useProvinceCityPicker";
+import TextArea from "../../components/textareacomp";
+import Select from '../../components/SelectComp'
 
 const fields = [
   { header: "Nama Supplier", accessor: "name" },
@@ -114,102 +116,98 @@ export default function SupplierModal({ isOpen, close, onSuccess, mode = "add", 
       </h2>
       <div className="max-h-[60vh] overflow-y-auto pr-2 px-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-          {/* Province Picker */}
-          <div className="flex flex-col mb-4">
-            <label className="text-sm font-medium mb-1">Provinsi</label>
-            <select
-              value={form.province_id || ""}
-              onChange={handleProvinceChange}
-              className="border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="">Pilih Provinsi</option>
-              {provinceOptions.map((prov) => (
-                <option key={prov.id} value={prov.id}>
-                  {prov.province}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* City/Regency Picker */}
-          <div className="flex flex-col mb-4">
-            <label className="text-sm font-medium mb-1">Kota/Kabupaten</label>
-            <select
-              value={form.city_id || ""}
-              onChange={handleCityChange}
-              className="border border-gray-300 rounded-md px-3 py-2"
-              disabled={!form.province_id}
-            >
-              <option value="">Pilih Kota/Kabupaten</option>
-              {cityOptions.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.type} {city.regency}
-                </option>
-              ))}
-            </select>
-          </div>
           {fields.map(({ header, accessor, type, options }) => {
             const isTextArea = accessor.includes("address");
-            if (isTextArea) {
-              return (
-                <div key={accessor} className="flex flex-col col-span-full">
-                  <label className="text-sm font-medium mb-1">{header}</label>
-                  <textarea
+
+            return (
+              <React.Fragment key={accessor}>
+                {isTextArea ? (
+                  <div className="flex flex-col col-span-full">
+                    <label className="text-sm font-medium mb-1">{header}</label>
+                    <TextArea
+                      value={form[accessor]}
+                      onChange={handleChange(accessor)}
+                      placeholder={header}
+                      rows={3}
+                    />
+                  </div>
+                ) : type === "select" ? (
+                  <div className="flex flex-col mb-4">
+                    <label className="text-sm font-medium mb-1">{header}</label>
+                    <Select
+                      value={form[accessor]}
+                      onChange={handleChange(accessor)}
+                    >
+                      <option value="">Pilih {header}</option>
+                      {options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                ) : (
+                  <InputField
+                    label={header}
                     value={form[accessor]}
                     onChange={handleChange(accessor)}
                     placeholder={header}
-                    rows={3}
-                    className="border border-gray-300 rounded-md px-3 py-2 resize-none bg-[var(--neutral-200,#E5E5E5)]"
+                    type={type || "text"}
                   />
-                </div>
-              );
-            }
+                )}
 
-            if (type === "select") {
-              return (
-                <div key={accessor} className="flex flex-col mb-4">
-                  <label className="text-sm font-medium mb-1">{header}</label>
-                  <select
-                    value={form[accessor]}
-                    onChange={handleChange(accessor)}
-                    className="border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="">Pilih {header} </option>
-                    {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              );
-            }
+                {accessor === "address" && (
+                  <>
+                    {/* Province Picker */}
+                    <div className="flex flex-col mb-4">
+                      <label className="text-sm font-medium mb-1">Provinsi</label>
+                      <Select
+                        value={form.province_id || ""}
+                        onChange={handleProvinceChange}
+                      >
+                        <option value="">Pilih Provinsi</option>
+                        {provinceOptions.map((prov) => (
+                          <option key={prov.id} value={prov.id}>
+                            {prov.province}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
 
-            return (
-              <InputField
-                key={accessor}
-                label={header}
-                value={form[accessor]}
-                onChange={handleChange(accessor)}
-                placeholder={header}
-                type={type || "text"}
-              />
-              
+                    {/* City Picker */}
+                    <div className="flex flex-col mb-4">
+                      <label className="text-sm font-medium mb-1">Kota/Kabupaten</label>
+                      <Select
+                        value={form.city_id || ""}
+                        onChange={handleCityChange}
+                        disabled={!form.province_id}
+                      >
+                        <option value="">Pilih Kota/Kabupaten</option>
+                        {cityOptions.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city.type} {city.regency}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  </>
+                )}
+              </React.Fragment>
             );
           })}
         </div>
       </div>
 
       <div className="mt-6 flex justify-between gap-4">
-        <Button onClick={handleSubmit} disabled={loading} className="w-full">
-          {loading ? "Menyimpan..." : mode === "edit" ? "Update" : "Simpan"}
-        </Button>
         <button
           onClick={() => setForm(generateInitialFormState())}
           className="w-full bg-gray-200 border border-black text-black rounded-md py-2 hover:bg-gray-300 transition"
         >
           Reset
         </button>
+        <Button onClick={handleSubmit} disabled={loading} className="w-full">
+          {loading ? "Menyimpan..." : mode === "edit" ? "Update" : "Simpan"}
+        </Button>
       </div>
 
       {toast && (

@@ -80,14 +80,13 @@ function InputField({
         placeholder={placeholder}
         className={`
           border ${
-            error ? "border-red-500" : "border-[var(--neutral-400,#A1A1A1)]"
+            error ? "border-red-500" : "border-black"
           }
-          bg-[var(--neutral-200,#E5E5E5)]
           rounded-[6px]
           px-[20px] 
           py-2 
           text-base
-          placeholder-gray-500
+          placeholder-black
           w-full
           focus:outline-none focus:ring-1 ${
             error ? "focus:ring-red-500" : "focus:ring-blue-500"

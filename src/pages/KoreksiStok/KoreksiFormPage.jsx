@@ -4,6 +4,7 @@ import Button from "../../components/buttonComp";
 import InputField from "../../components/inputField";
 import Toast from "../../components/toast";
 import { apiClient } from "../../config/api";
+import Select from "../../components/SelectComp";
 
 export default function KoreksiFormPage() {
   const [toast, setToast] = useState(null);
@@ -92,7 +93,7 @@ export default function KoreksiFormPage() {
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col mb-4">
             <label className="text-sm font-medium mb-1">Produk</label>
-            <select
+            <Select
               value={form.product_id}
               onChange={handleChange("product_id")}
               className="border border-gray-300 rounded-md px-3 py-2"
@@ -103,7 +104,7 @@ export default function KoreksiFormPage() {
                   {product.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <InputField

@@ -66,6 +66,7 @@ export default function Sidebar() {
           >
             Tabel Barang
           </Link>
+          {/*
           <Link
             to="/shift-resep"
             className={`block px-4 py-2 rounded hover:bg-gray-100 ${
@@ -74,7 +75,7 @@ export default function Sidebar() {
           >
             Buka Shift Kasir dengan Resep
           </Link>
-                    <Link
+          <Link
             to="/shift-tanpa-resep"
             className={`block px-4 py-2 rounded hover:bg-gray-100 ${
               isActive("/shift-tanpa-resep") ? "bg-gray-200" : ""
@@ -82,6 +83,7 @@ export default function Sidebar() {
           >
             Buka Shift Kasir
           </Link>
+          */}
 
           {/* Master Setting Dropdown */}
           <button
@@ -211,7 +213,8 @@ export default function Sidebar() {
               >
                 Riwayat Pemesanan Non-PBF
               </Link>
-              <Link
+            {/*
+            <Link
                 to="/laporan-terjual"
                 className={`block px-4 py-1 rounded hover:bg-gray-100 ${
                   isActive("/laporan-terjual") ? "bg-gray-200" : ""
@@ -219,6 +222,7 @@ export default function Sidebar() {
               >
                 Riwayat Laporan Kasir
               </Link>
+              */}
             </div>
           )}
 
@@ -274,8 +278,7 @@ export default function Sidebar() {
               </Link>
             </div>
           )}
-
-              <Link
+{/* <Link
                 to="/stock-opname"
                 className={`block px-4 py-1 hover:bg-gray-100 rounded ${
                   isActive("/stock-opname") ? "bg-gray-200" : ""
@@ -290,7 +293,8 @@ export default function Sidebar() {
                 }`}
               >
                 Koreksi Stok
-              </Link>
+              </Link> */}
+              
 
           {/* Logout */}
           <button

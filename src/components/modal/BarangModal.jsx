@@ -5,6 +5,8 @@ import Button from "../buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import TextArea from "../textareacomp";
+import Select from "../SelectComp";
 
 const formFields = [
   { label: "Nama", key: "name", placeholder: "Nama produk" },
@@ -152,10 +154,9 @@ export default function BarangModal({ isOpen, close, onSuccess, mode = "add", pr
               return (
                 <div key={key} className="flex flex-col">
                   <label className="text-sm font-medium mb-1">{label}</label>
-                  <select
+                  <Select
                     value={form[key]}
                     onChange={handleChange(key)}
-                    className="border border-gray-300 rounded-md px-3 py-2"
                   >
                     <option value="">Pilih {label}</option>
                     {options.map((opt) => (
@@ -163,7 +164,7 @@ export default function BarangModal({ isOpen, close, onSuccess, mode = "add", pr
                         {opt.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               );
             }
@@ -172,12 +173,11 @@ export default function BarangModal({ isOpen, close, onSuccess, mode = "add", pr
               return (
                 <div key={key} className="flex flex-col col-span-full">
                   <label className="text-sm font-medium mb-1">{label}</label>
-                  <textarea
+                  <TextArea
                     value={form[key]}
                     onChange={handleChange(key)}
                     placeholder={placeholder}
                     rows={4}
-                    className="border border-gray-300 rounded-md px-3 py-2 resize-none bg-[var(--neutral-200,#E5E5E5)] placeholder-gray-500"
                   />
                 </div>
               );

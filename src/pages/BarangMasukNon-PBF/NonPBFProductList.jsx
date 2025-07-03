@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "../../components/buttonComp";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import DataTable from "../../components/tableCompo";
 import ActionMenu from "../../components/ActionMenu";
 import NonPBFProductModal from "./NonPBFProductModal";
@@ -8,8 +8,11 @@ import { apiClient } from "../../config/api";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Toast from "../../components/toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import Select from "../../components/SelectComp";
 
 export default function NonPBFProductListPage() {
+  const [paymentStatus, setPaymentStatus] = useState("Belum Lunas");
+  const { id } = useParams();
   const [toast, setToast] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -32,21 +35,62 @@ export default function NonPBFProductListPage() {
   }, []);
 
   useEffect(() => {
-    const storedNonPbfList = JSON.parse(localStorage.getItem("nonpbfList") || "null");
-    if (storedNonPbfList) {
-      setNonPbfList(storedNonPbfList);
-    }
-  }, []);
+    const fetchData = async () => {
+      if (id) {
+        try {
+          const res = await apiClient.get(`/incoming-nonpbf/${id}`);
+          const data = res.data?.data;
+
+          if (data) {
+            setFormData({
+              order_date: data.order_date,
+              order_number: data.order_number,
+              supplier_id: data.supplier_id,
+              supplier_name: data.supplier_name,
+              invoice_number: data.invoice_number,
+              transaction_type: data.transaction_type,
+              receipt_date: data.receipt_date,
+              payment_due_date: data.payment_due_date,
+              additional_notes: data.additional_notes,
+            });
+
+            setPaymentStatus(data.payment_status || "Belum Lunas");
+
+            const detailItems = data.details.map((item) => ({
+              product: {
+                id: item.product_id,
+                name: item.product_name,
+                code: item.product_code,
+                unit: { name: item.unit },
+              },
+              quantity: item.incoming_quantity,
+              purchase_price: item.purchase_price,
+              product_batch: item.batch_number,
+              expiry: item.expiry_date,
+            }));
+
+            setNonPbfList(detailItems);
+          }
+        } catch (error) {
+          console.error("Failed to fetch PBF detail:", error);
+          setToast({ message: "Gagal memuat data untuk edit", type: "error" });
+        }
+      } else {
+        const storedForm = JSON.parse(localStorage.getItem("pbfForm") || "null");
+        if (storedForm) setFormData(storedForm);
+
+        const storedNonPbfList = JSON.parse(localStorage.getItem("barangList") || "null");
+        if (storedNonPbfList) setNonPbfList(storedNonPbfList);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
 
   useEffect(() => {
     localStorage.setItem("nonpbfList", JSON.stringify(nonpbfList));
   }, [nonpbfList]);
-
-  const handleKembali = () => {
-    localStorage.removeItem("nonpbfForm");
-    localStorage.removeItem("nonpbfList");
-    navigate("/non-pbf-detail");
-  };
 
   const handleEdit = (row) => {
     setEditingItem(row);
@@ -77,7 +121,17 @@ export default function NonPBFProductListPage() {
     return nonpbfList.reduce((acc, item) => acc + item.quantity * item.purchase_price, 0);
   };
 
-  const handleSave = async () => {
+    const handleKembali = () => {
+      if (id) {
+        navigate(`/non-pbf-detail/${id}`);
+      } else {
+        localStorage.removeItem("nonpbfForm");
+        localStorage.removeItem("nonpbfList");
+        navigate("/non-pbf-detail");
+      }
+    };
+
+   const handleSave = async () => {
     try {
       const form = JSON.parse(localStorage.getItem("nonpbfForm"));
       const nonpbfList = JSON.parse(localStorage.getItem("nonpbfList"));
@@ -90,46 +144,53 @@ export default function NonPBFProductListPage() {
         return;
       }
 
-    const totalPurchase = calculateTotalPembelian();
-    
-    const formatDate = (date) => date ? new Date(date).toISOString() : null;
-    
-    const user = JSON.parse(localStorage.getItem("user"));
-    const payload = {
-      order_date: formatDate(form.order_date),
-      order_number: form.order_number,
-      transaction_code: form.order_number,
-      incoming_date: formatDate(form.receipt_date),
-      supplier_name: form.supplier_name, // Ensure this is stored in the form/localStorage
-      invoice_number: form.invoice_number,
-      transaction_type: form.transaction_type,
-      payment_due_date: formatDate(form.payment_due_date),
-      additional_notes: form.additional_notes || "",
-      total_purchase: totalPurchase,
-      payment_status: "Belum Lunas",
-      user_id: user?.id,
-      officer_name: user?.full_name,
-      details: nonpbfList.map((item) => ({
-        product_id: item.product.id,
-        product_code: item.product.code || "",
-        product_name: item.product.name || "",
-        unit: item.product.unit?.name || "",
-        incoming_quantity: item.quantity,
-        purchase_price: item.purchase_price,
-        batch_number: form.order_number,
-        expiry_date: formatDate(item.expiry),
-      })),
-    };
+      const totalPurchase = calculateTotalPembelian();
+
+      const formatDate = (date) => date ? new Date(date).toISOString() : null;
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      const payload = {
+        order_date: formatDate(form.order_date),
+        order_number: form.order_number,
+        transaction_code: form.order_number,
+        incoming_date: formatDate(form.receipt_date),
+        supplier_name: form.supplier_name,
+        invoice_number: form.invoice_number,
+        transaction_type: form.transaction_type,
+        payment_due_date: formatDate(form.payment_due_date),
+        additional_notes: form.additional_notes || "",
+        total_purchase: totalPurchase,
+        payment_status: paymentStatus,
+        user_id: user?.id,
+        officer_name: user?.full_name,
+        details: nonpbfList.map((item) => ({
+          product_id: item.product.id,
+          product_code: item.product.code || "",
+          product_name: item.product.name || "",
+          unit: item.product.unit?.name || "",
+          incoming_quantity: item.quantity,
+          purchase_price: item.purchase_price,
+          batch_number: form.order_number,
+          expiry_date: formatDate(item.expiry),
+        })),
+      };
 
       console.log("Submitting payload:", JSON.stringify(payload, null, 2));
 
-      await apiClient.post("/incoming-nonpbf", payload);
+      if (id) {
+          await apiClient.put(`/incoming-nonpbf/${id}`, payload);
+          setToast({ message: "Transaksi berhasil diperbarui", type: "success" });
+        } else {
+          await apiClient.post("/incoming-nonpbf", payload);
+          setToast({ message: "Barang masuk berhasil disimpan!", type: "success" });
+      }
 
       setToast({ message: "Barang masuk berhasil disimpan!", type: "success" });
 
       localStorage.removeItem("nonpbfForm");
       localStorage.removeItem("nonpbfList");
-      navigate("/non-pbf-detail");
+
+      navigate("/riwayat-non-pbf");
 
     } catch (err) {
       console.error("Gagal menyimpan barang masuk:", err);
@@ -137,6 +198,7 @@ export default function NonPBFProductListPage() {
       setToast({ message, type: "error" });
     }
   };
+
 
   const columns = [
     { header: "Nama Obat", accessor: "product.name" },
@@ -189,7 +251,7 @@ export default function NonPBFProductListPage() {
       <div className="flex-1 p-8">
         <h1 className="text-2xl font-bold mb-6">Detail Pesanan Obat Non-PBF</h1>
 
-        <div className="mb-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             className="mb-4"
             onClick={() => {
@@ -199,6 +261,17 @@ export default function NonPBFProductListPage() {
           >
             Tambah Barang
           </Button>
+           <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Status Pembayaran:</label>
+              <Select
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+              >
+                <option value="Lunas">Lunas</option>
+                <option value="Belum Lunas">Belum Lunas</option>
+              </Select>
+            </div>
         </div>
 
         <div className="border border-gray-300 p-6 rounded-md bg-white min-h-[150px] w-full">
@@ -255,9 +328,9 @@ export default function NonPBFProductListPage() {
         />
 
         <div className="flex justify-between mt-6 space-x-4">
-          <Button className="w-full" onClick={handleKembali}>
+          <button className="w-full bg-gray-200 border border-black text-black rounded-md py-2 hover:bg-gray-300 transition" onClick={handleKembali}>
             Kembali
-          </Button>
+          </button>
           <Button className="w-full" onClick={handleSave}>
             Simpan
           </Button>

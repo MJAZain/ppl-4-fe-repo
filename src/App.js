@@ -52,11 +52,16 @@ function App() {
         <Route path="/golongan" element={<AturGolonganObatPage />} />
         <Route path="/storage-locations" element={<StorageLocationPage />} />
         <Route path="/brands" element={<BrandPage />} />
-        
-        <Route path="/pbf-detail" element={<PBFDetailPage />} />
+
+        <Route path="/pbf-detail" element={<PBFDetailPage />} />         
+        <Route path="/pbf-detail/:id" element={<PBFDetailPage />} />    
         <Route path="/pbf-list" element={<PBFProductListPage />} />
+        <Route path="/pbf-list/:id" element={<PBFProductListPage />} />
+
         <Route path="/non-pbf-detail" element={<NonPBFDetailPage />} />
+        <Route path="/non-pbf-detail/:id" element={<NonPBFDetailPage />} />
         <Route path="/non-pbf-list" element={<NonPBFProductListPage />} />
+        <Route path="/non-pbf-list/:id" element={<NonPBFProductListPage />} />
 
         <Route path="/shift-resep" element={<ResepShiftUmumPage />} />
         <Route path="/shift-tanpa-resep" element={<TanpaResepShiftUmumPage />} />

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Button from "../../components/buttonComp";
 import InputField from "../../components/inputField";
 import Toast from "../../components/toast";
 import { apiClient } from "../../config/api";
+import Select from '../../components/SelectComp'
+import TextArea from '../../components/textareacomp'
 
 const formFields = [
   { label: "Tanggal Pesanan", key: "order_date", placeholder: "Tanggal Pemesanan", type: "date" },
@@ -25,22 +27,68 @@ export default function NonPBFDetailPage() {
   const [toast, setToast] = useState(null);
   const [supplier, setSupplier] = useState([]);
   const [form, setForm] = useState({});
+
+  const { id } = useParams();
+
   const navigate = useNavigate();
 
-  useEffect(() => {
-  const fetchDropdowns = async () => {
+ useEffect(() => {
+  const fetchDropdownsAndForm = async () => {
     try {
+      console.debug("Fetching supplier list...");
       const supplierRes = await apiClient.get("/suppliers/");
       const allSuppliers = supplierRes?.data?.data || [];
+      console.debug("All suppliers fetched:", allSuppliers);
+
       const nonpbfSuppliers = allSuppliers.filter(supplier => supplier.type === "Non-PBF");
+      console.debug("Filtered Non-PBF suppliers:", nonpbfSuppliers);
+
       setSupplier(nonpbfSuppliers);
+
+      if (id) {
+        console.debug(`Fetching incoming-nonpbf detail for id: ${id}`);
+        const res = await apiClient.get(`/incoming-nonpbf/${id}`);
+        const data = res?.data?.data;
+        console.debug("Fetched Non-PBF detail:", data);
+
+        if (data) {
+          const matchedSupplier = nonpbfSuppliers.find(s => s.name === data.supplier_name);
+          console.debug("Matched supplier from name:", matchedSupplier);
+
+          setForm({
+            order_date: data.order_date?.split("T")[0] || "",
+            receipt_date: data.incoming_date?.split("T")[0] || "",
+            supplier_id: matchedSupplier?.id || "",
+            supplier_name: data.supplier_name || "",
+            invoice_number: data.invoice_number || "",
+            transaction_type: data.transaction_type || "",
+            payment_due_date: data.payment_due_date?.split("T")[0] || "",
+            additional_notes: data.additional_notes || "",
+            order_number: data.order_number || "",
+          });
+
+          console.debug("Form state set with data:", {
+            order_date: data.order_date?.split("T")[0] || "",
+            receipt_date: data.incoming_date?.split("T")[0] || "",
+            supplier_id: matchedSupplier?.id || "",
+            supplier_name: data.supplier_name || "",
+            invoice_number: data.invoice_number || "",
+            transaction_type: data.transaction_type || "",
+            payment_due_date: data.payment_due_date?.split("T")[0] || "",
+            additional_notes: data.additional_notes || "",
+            order_number: data.order_number || "",
+          });
+        }
+      } else {
+        console.debug("No ID provided, skipping detail fetch.");
+      }
     } catch (error) {
-      console.error("Failed to fetch dropdown data:", error);
+      console.error("Failed to fetch dropdowns or form data:", error);
     }
   };
 
-  fetchDropdowns();
-}, []);
+  fetchDropdownsAndForm();
+}, [id]);
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -55,7 +103,7 @@ const today = new Date().toISOString().split("T")[0];
 
   const handleNext = () => {
     const requiredKeys = formFields
-      .filter((field) => field.key !== "note")
+      .filter((field) => field.key !== "additinal_notes")
       .map((field) => field.key);
 
     const allFilled = requiredKeys.every((key) => form[key] && form[key].toString().trim() !== "");
@@ -74,22 +122,28 @@ const today = new Date().toISOString().split("T")[0];
     const fullForm = {
       ...form,
       supplier_name: supplierName,
-      order_number: generateKodeTransaksi(),
+      order_number: id ? form.order_number : generateKodeTransaksi(),
     };
 
     localStorage.setItem("nonpbfForm", JSON.stringify(fullForm));
     console.log("nonpbfForm:", JSON.stringify(fullForm, null, 2));
-    navigate("/non-pbf-list");
-  };
 
+    if (id) {
+      navigate(`/non-pbf-list/${id}`);
+    } else {
+      navigate("/non-pbf-list");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="bg-white min-h-screen">
-        <Sidebar />
+        {!id && <Sidebar />}
       </div>
       <div className="bg-white max-w-xl mx-auto w-full p-6 mt-10 border rounded-md border-gray-300 shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Form Barang Masuk Non-PBF</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">
+          {id ? "Edit Barang Masuk Non-PBF" : "Form Barang Masuk Non-PBF"}
+        </h1>
 
         <div className="max-h-[60vh] overflow-y-auto pr-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -114,10 +168,9 @@ const today = new Date().toISOString().split("T")[0];
                 return (
                   <div key={key} className="flex flex-col">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <select
+                    <Select
                       value={form[key] || ""}
                       onChange={handleChange(key)}
-                      className="border border-gray-300 rounded-md px-3 py-2"
                     >
                       <option value="">Pilih {label}</option>
                       {selectOptions.map((opt) => (
@@ -125,7 +178,7 @@ const today = new Date().toISOString().split("T")[0];
                           {opt.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 );
               }
@@ -134,7 +187,7 @@ const today = new Date().toISOString().split("T")[0];
                 return (
                   <div key={key} className="flex flex-col col-span-full">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <textarea
+                    <TextArea
                       value={form[key] || ""}
                       onChange={handleChange(key)}
                       placeholder={placeholder}
@@ -170,7 +223,7 @@ const today = new Date().toISOString().split("T")[0];
 
         <div className="mt-6">
           <Button className="w-full" onClick={handleNext}>
-            Selanjutnya
+            {id ? "Lanjut Edit" : "Selanjutnya"}
           </Button>
         </div>
       </div>

@@ -176,13 +176,11 @@ function AturUsersPage() {
     return statusMatch && roleMatch;
   });
 
-
-
   const columns = [
     { header: "Nama", accessor: "full_name" },
     { header: "Peran", accessor: "role" },
     { header: "Nomor HP", accessor: "phone" },
-    { header: "EMail", accessor: "email" },
+    { header: "Email", accessor: "email" },
     {
         header: "Status",
         accessor: "active",

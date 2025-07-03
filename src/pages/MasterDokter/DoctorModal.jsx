@@ -5,6 +5,7 @@ import Button from "../../components/buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../../components/toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import Select from '../../components/SelectComp'
 
 const fields = [
   { accessor: "full_name", label: "Nama Dokter" },
@@ -86,10 +87,9 @@ export default function DoctorModal({ isOpen, close, onSuccess, mode = "add", do
               return (
                 <div key={accessor} className="flex flex-col mb-4">
                   <label className="text-sm font-medium mb-1">{label}</label>
-                  <select
+                  <Select
                     value={form[accessor]}
                     onChange={handleChange(accessor)}
-                    className="border border-gray-300 rounded-md px-3 py-2"
                   >
                     <option value="">Pilih Status</option>
                     {options.map((opt) => (
@@ -97,7 +97,7 @@ export default function DoctorModal({ isOpen, close, onSuccess, mode = "add", do
                         {opt}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               );
             }
@@ -117,15 +117,15 @@ export default function DoctorModal({ isOpen, close, onSuccess, mode = "add", do
       </div>
 
       <div className="mt-6 flex justify-between gap-4">
-        <Button onClick={handleSubmit} disabled={loading} className="w-full">
-          {loading ? "Menyimpan..." : mode === "edit" ? "Update" : "Simpan"}
-        </Button>
         <button
           onClick={() => setForm(generateInitialFormState())}
           className="w-full bg-gray-200 border border-black text-black rounded-md py-2 hover:bg-gray-300 transition"
         >
           Reset
         </button>
+        <Button onClick={handleSubmit} disabled={loading} className="w-full">
+          {loading ? "Menyimpan..." : mode === "edit" ? "Update" : "Simpan"}
+        </Button>
       </div>
 
       {toast && (

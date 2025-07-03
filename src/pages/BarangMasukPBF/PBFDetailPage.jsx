@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Button from "../../components/buttonComp";
 import InputField from "../../components/inputField";
 import Toast from "../../components/toast";
 import { apiClient } from "../../config/api";
+import Select from '../../components/SelectComp';
+import TextArea from "../../components/textareacomp";
 
 const formFields = [
   { label: "Tanggal Pesanan", key: "order_date", placeholder: "Tanggal Pemesanan", type: "date" },
@@ -27,20 +29,53 @@ export default function PBFDetailPage() {
   const [form, setForm] = useState({});
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchDropdowns = async () => {
-      try {
-        const supplierRes = await apiClient.get("/suppliers/");
-        const allSuppliers = supplierRes?.data?.data || [];
-        const pbfSuppliers = allSuppliers.filter(supplier => supplier.type === "PBF");
-        setSupplier(pbfSuppliers);
-      } catch (error) {
-        console.error("Failed to fetch dropdown data:", error);
-      }
-    };
+  const { id } = useParams();
 
-    fetchDropdowns();
-  }, []);
+ useEffect(() => {
+  const fetchDropdownsAndForm = async () => {
+    try {
+      console.log("Fetching suppliers...");
+
+      const supplierRes = await apiClient.get("/suppliers/");
+      const allSuppliers = supplierRes?.data?.data || [];
+      const pbfSuppliers = allSuppliers.filter(supplier => supplier.type === "PBF");
+      setSupplier(pbfSuppliers);
+
+      console.log("PBF Suppliers fetched:", pbfSuppliers);
+
+      if (id) {
+        console.log("Editing mode detected, fetching data for ID:", id);
+
+        const pbfRes = await apiClient.get(`/incoming-pbf/${id}`);
+        const pbfData = pbfRes?.data?.data;
+
+        if (pbfData) {
+          console.log("Fetched PBF transaction data:", pbfData);
+
+          setForm({
+            order_date: pbfData.order_date?.split("T")[0] || "",
+            receipt_date: pbfData.receipt_date?.split("T")[0] || "",
+            supplier_id: pbfData.supplier_id || "",
+            invoice_number: pbfData.invoice_number || "",
+            transaction_type: pbfData.transaction_type || "",
+            payment_due_date: pbfData.payment_due_date?.split("T")[0] || "",
+            additional_notes: pbfData.additional_notes || "",
+            order_number: pbfData.order_number || "",
+          });
+        } else {
+          console.warn("No PBF data found for given ID.");
+        }
+      } else {
+        console.log("No ID provided — create mode.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch dropdown or form data:", error);
+    }
+  };
+
+  fetchDropdownsAndForm();
+}, [id]);
+
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
@@ -54,37 +89,47 @@ export default function PBFDetailPage() {
   const today = new Date().toISOString().split("T")[0];
 
   const handleNext = () => {
-    const requiredKeys = formFields
-      .filter((field) => field.key !== "note")
-      .map((field) => field.key);
+      const requiredKeys = formFields
+        .filter((field) => field.key !== "additional_notes")
+        .map((field) => field.key);
 
-    const allFilled = requiredKeys.every((key) => form[key] && form[key].toString().trim() !== "");
+      const allFilled = requiredKeys.every(
+        (key) => form[key] && form[key].toString().trim() !== ""
+      );
 
-    if (!allFilled) {
-      setToast({
-        message: "Mohon isi semua field wajib.",
-        type: "error",
-      });
-      return;
-    }
+      if (!allFilled) {
+        setToast({
+          message: "Mohon isi semua field wajib.",
+          type: "error",
+        });
+        return;
+      }
 
-    const fullForm = {
-      ...form,
-      order_number: generateKodeTransaksi(),
+      const fullForm = {
+        ...form,
+        order_number: id ? form.order_number : generateKodeTransaksi(),
+      };
+
+      localStorage.setItem("pbfForm", JSON.stringify(fullForm));
+      console.log("pbfForm:", JSON.stringify(fullForm, null, 2));
+
+      if (id) {
+        navigate(`/pbf-list/${id}`);
+      } else {
+        navigate("/pbf-list");
+      }
     };
-
-    localStorage.setItem("pbfForm", JSON.stringify(fullForm));
-    console.log("pbfForm:", JSON.stringify(fullForm, null, 2));
-    navigate("/pbf-list");
-  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="bg-white min-h-screen">
-        <Sidebar />
+        {!id && <Sidebar />}
       </div>
       <div className="bg-white max-w-xl mx-auto w-full p-6 mt-10 border rounded-md border-gray-300 shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Form Barang Masuk PBF</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">
+          {id ? "Edit Barang Masuk PBF" : "Form Barang Masuk PBF"}
+        </h1>
+
 
         <div className="max-h-[60vh] overflow-y-auto pr-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -109,10 +154,9 @@ export default function PBFDetailPage() {
                 return (
                   <div key={key} className="flex flex-col">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <select
+                    <Select
                       value={form[key] || ""}
                       onChange={handleChange(key)}
-                      className="border border-gray-300 rounded-md px-3 py-2"
                     >
                       <option value="">Pilih {label}</option>
                       {selectOptions.map((opt) => (
@@ -120,7 +164,7 @@ export default function PBFDetailPage() {
                           {opt.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 );
               }
@@ -129,12 +173,11 @@ export default function PBFDetailPage() {
                 return (
                   <div key={key} className="flex flex-col col-span-full">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <textarea
+                    <TextArea
                       value={form[key] || ""}
                       onChange={handleChange(key)}
                       placeholder={placeholder}
                       rows={4}
-                      className="border border-gray-300 rounded-md px-3 py-2 resize-none bg-[var(--neutral-200,#E5E5E5)]"
                     />
                   </div>
                 );
@@ -165,7 +208,7 @@ export default function PBFDetailPage() {
 
         <div className="mt-6">
           <Button className="w-full" onClick={handleNext}>
-            Selanjutnya
+            {id ? "Lanjut Edit" : "Selanjutnya"}
           </Button>
         </div>
       </div>

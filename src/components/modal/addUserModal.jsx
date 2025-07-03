@@ -5,6 +5,7 @@ import Button from "../buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import Select from "../SelectComp";
 
 const initialFormState = {
   full_name: "",
@@ -90,7 +91,7 @@ export default function AddUserModal({ isOpen, close, onSuccess }) {
             return (
               <div key={key} className="flex flex-col">
                 <label className="mb-1 font-medium">{labelMap[key]}</label>
-                <select
+                <Select
                   value={form[key]}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   className="w-full h-10 border rounded px-2"
@@ -98,7 +99,7 @@ export default function AddUserModal({ isOpen, close, onSuccess }) {
                   <option value="">Pilih peran</option>
                   <option value="Admin">Admin</option>
                   <option value="Pegawai">Pegawai</option>
-                </select>
+                </Select>
               </div>
             );
           }

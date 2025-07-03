@@ -4,12 +4,15 @@ import InputField from "../../components/inputField";
 import Button from "../../components/buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../../components/toast";
+import Select from '../../components/SelectComp';
+import TextArea from "../../components/textareacomp";
 
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
 
 const formFields = [
   { label: "Nama Golongan", key: "name", placeholder: "Nama golongan" },
   { label: "Deskripsi", key: "description", placeholder: "Deskripsi" },
+  { label: "Status", key: "status", placeholder: "Pilih Status", options: ["Aktif", "Nonaktif"] },
 ];
 
 export default function GolonganModal({ isOpen, close, onSuccess, mode = "add", golongan = null }) {
@@ -48,10 +51,6 @@ export default function GolonganModal({ isOpen, close, onSuccess, mode = "add", 
 
   const handleSubmit = async () => {
     const allFilled = Object.values(form).every((val) => val?.toString().trim() !== "");
-    if (!allFilled) {
-      setToast({ message: "Semua kolom harus diisi.", type: "error" });
-      return;
-    }
 
     const payload = {
       ...form,
@@ -83,20 +82,39 @@ export default function GolonganModal({ isOpen, close, onSuccess, mode = "add", 
         {mode === "edit" ? "Edit Golongan" : "Tambah Golongan"}
       </h2>
       <div className="max-h-[60vh] overflow-y-auto pr-2 px-5">
-        <div className=" gap-4 w-full">
-          {formFields.map(({ label, key, placeholder, type }) => {
+        <div className="gap-4 w-full">
+          {formFields.map(({ label, key, placeholder, type, options }) => {
             const isTextArea = key.includes("description");
+
             if (isTextArea) {
               return (
                 <div key={key} className="flex flex-col col-span-full">
                   <label className="text-sm font-medium mb-1">{label}</label>
-                  <textarea
+                  <TextArea
                     value={form[key]}
                     onChange={handleChange(key)}
                     placeholder={placeholder}
                     rows={4}
-                    className="border border-gray-300 rounded-md px-3 py-2 resize-none"
                   />
+                </div>
+              );
+            }
+
+            if (options && Array.isArray(options)) {
+              return (
+                <div key={key} className="flex flex-col col-span-full">
+                  <label className="text-sm font-medium mb-1">{label}</label>
+                  <Select
+                    value={form[key]}
+                    onChange={handleChange(key)}
+                  >
+                    <option value="">{placeholder}</option>
+                    {options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
               );
             }

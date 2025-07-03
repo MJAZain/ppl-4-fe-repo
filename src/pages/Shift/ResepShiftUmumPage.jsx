@@ -5,6 +5,8 @@ import Button from "../../components/buttonComp";
 import InputField from "../../components/inputField";
 import Toast from "../../components/toast";
 import { apiClient } from "../../config/api";
+import Select from '../../components/SelectComp'
+import TextArea from '../../components/textareacomp'
 
 const formFields = [
   { label: "Tanggal Shift", key: "shift_date", placeholder: "Tanggal Shift", type: "date" },
@@ -84,7 +86,7 @@ const handleNext = async () => {
       });
 
       setTimeout(() => {
-        navigate("/resep-shift-detail");
+        navigate("/dashboard");
       }, 1500);
     } else {
       throw new Error("Server tidak merespons seperti yang diharapkan.");
@@ -157,7 +159,7 @@ const handleNext = async () => {
                 return (
                   <div key={key} className="flex flex-col mb-4">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <select
+                    <Select
                       disabled
                       value={form[key]}
                       onChange={handleChange(key)}
@@ -169,7 +171,7 @@ const handleNext = async () => {
                           {opt.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 );
               }
@@ -178,7 +180,7 @@ const handleNext = async () => {
                 return (
                   <div key={key} className="flex flex-col mb-4">
                     <label className="text-sm font-medium mb-1">{label}</label>
-                    <textarea
+                    <TextArea
                       value={form[key]}
                       onChange={handleChange(key)}
                       placeholder={placeholder}

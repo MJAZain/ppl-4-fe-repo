@@ -184,9 +184,6 @@ export default function PBFProductModal({ isOpen, onClose, onSave, initialData =
       )}
 
       <div className="mt-6 flex justify-between gap-4">
-        <Button onClick={handleSave} className="w-full">
-          Simpan
-        </Button>
         <button
           className="text-black w-full bg-gray-200 border border-black hover:bg-gray-300 rounded-md"
           onClick={() => {
@@ -201,6 +198,9 @@ export default function PBFProductModal({ isOpen, onClose, onSave, initialData =
         >
           Reset
         </button>
+        <Button onClick={handleSave} className="w-full">
+          Simpan
+        </Button>
       </div>
     </Modal>
   );

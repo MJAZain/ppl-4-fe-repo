@@ -7,6 +7,7 @@ import ActionMenu from "../../../components/ActionMenu";
 import Toast from "../../../components/toast";
 import usePBFActions from "./PBFActions";
 import { apiClient } from "../../../config/api";
+import { useNavigate } from "react-router-dom";
 
 function RiwayatPBFPage() {
   const [incomingProducts, setIncomingProducts] = useState([]);
@@ -14,7 +15,8 @@ function RiwayatPBFPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const { deletePBF, loading, error } = usePBFActions();
+  const { updatePBF, deletePBF, loading, error } = usePBFActions();
+  const navigate = useNavigate();
 
   const fetchIncomingProducts = async () => {
     console.log("[DEBUG] Fetching incoming PBF transactions from /incoming-pbf...");
@@ -70,6 +72,10 @@ function RiwayatPBFPage() {
     }
   };
 
+  const handleEdit = (id) => {
+    navigate(`/pbf-detail/${id}`);
+  };
+
   const { searchTerm, setSearchTerm, filteredData } = useSearch(
     incomingProducts,
     [
@@ -95,6 +101,7 @@ function RiwayatPBFPage() {
       render: (item) => (
         <ActionMenu
           actions={[
+            { label: "Edit", onClick: () => handleEdit(item.id) },
             { label: "Delete", onClick: () => handleDeleteRequest(item.id) },
           ]}
         />
@@ -114,7 +121,7 @@ function RiwayatPBFPage() {
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}
-          placeholder="Cari berdasarkan supplier, faktur, status..."
+          placeholder="Cari berdasarkan supplier, nomor transaksi"
         />
 
         <div className="border border-gray-400 rounded-xl bg-white p-5">

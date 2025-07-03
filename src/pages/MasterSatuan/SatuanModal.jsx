@@ -5,6 +5,7 @@ import Button from "../../components/buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../../components/toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import TextArea from "../../components/textareacomp";
 
 const formFields = [
   { label: "Nama Satuan", key: "name", placeholder: "Nama satuan" },
@@ -31,7 +32,8 @@ export default function SatuanModal({
   };
 
   useEffect(() => {
-    if (mode === "edit" && satuan) {
+    if (isOpen) {
+      if (mode === "edit" && satuan) {
       const base = generateInitialFormState();
       const populated = { ...base, ...satuan };
 
@@ -45,7 +47,9 @@ export default function SatuanModal({
     } else {
       setForm(generateInitialFormState());
     }
-  }, [mode, satuan]);
+    }
+    
+  }, [isOpen, mode, satuan]);
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
@@ -55,10 +59,6 @@ export default function SatuanModal({
     const allFilled = Object.values(form).every(
       (val) => val?.toString().trim() !== ""
     );
-    if (!allFilled) {
-      setToast({ message: "Semua kolom harus diisi.", type: "error" });
-      return;
-    }
 
     const payload = { ...form };
     setLoading(true);
@@ -96,12 +96,11 @@ export default function SatuanModal({
               return (
                 <div key={key} className="flex flex-col col-span-full">
                   <label className="text-sm font-medium mb-1">{label}</label>
-                  <textarea
+                  <TextArea
                     value={form[key]}
                     onChange={handleChange(key)}
                     placeholder={placeholder}
                     rows={4}
-                    className="border border-gray-300 rounded-md px-3 py-2 resize-none"
                   />
                 </div>
               );

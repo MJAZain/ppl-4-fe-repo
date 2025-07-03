@@ -119,8 +119,8 @@ function AturSuppliersPage() {
     { header: "Email", accessor: "email" },
     { header: "Nama Kontak Person", accessor: "contact_person" },
     { header: "No. Kontak Person", accessor: "contact_number" },
-    { header: "Provinsi", accessor: "province_id" },
-    { header: "Kota", accessor: "city_id" },
+    { header: "Provinsi", accessor: "province" },
+    { header: "Kota", accessor: "city" },
     { header: "Status", accessor: "status",
         render: (row) => {
         const value = row.status;

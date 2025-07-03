@@ -7,6 +7,7 @@ import ActionMenu from "../../../components/ActionMenu";
 import Toast from "../../../components/toast";
 import usePBFActions from "./PBFActions";
 import { apiClient } from "../../../config/api";
+import { useNavigate } from "react-router-dom";
 
 function RiwayatNonPBFPage() {
   const [incomingProducts, setIncomingProducts] = useState([]);
@@ -15,6 +16,7 @@ function RiwayatNonPBFPage() {
   const [toast, setToast] = useState(null);
 
   const { deletePBF, loading, error } = usePBFActions();
+  const navigate = useNavigate();
 
   const fetchIncomingProducts = async () => {
     console.log("[DEBUG] Fetching incoming Non-PBF transaction...");
@@ -71,6 +73,10 @@ function RiwayatNonPBFPage() {
     }
   };
 
+    const handleEdit = (id) => {
+    navigate(`/non-pbf-detail/${id}`);
+  };
+
   const { searchTerm, setSearchTerm, filteredData } = useSearch(
     incomingProducts,
     [
@@ -98,6 +104,7 @@ function RiwayatNonPBFPage() {
       render: (item) => (
         <ActionMenu
           actions={[
+            { label: "Edit", onClick: () => handleEdit(item.id) },
             { label: "Delete", onClick: () => handleDeleteRequest(item.id) },
           ]}
         />

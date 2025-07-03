@@ -15,10 +15,15 @@ import Toast from "../../components/toast";
 import KaryawanModal from "./KaryawanModal";
 import useKaryawanActions from "./useKaryawanActions";
 
+import { saveAs } from "file-saver";
+
 function AturKaryawanPage() {
   const [userList, setUserList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
@@ -28,7 +33,7 @@ function AturKaryawanPage() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const navigate = useNavigate();
-  const { getUserById, deleteUser, reactivateUser, deactivateUser } = useKaryawanActions();
+  const { getUserById, deleteUser, reactivateUser, deactivateUser, exportUsersCSV } = useKaryawanActions();
 
   const fetchUsers = async () => {
     try {
@@ -46,6 +51,18 @@ function AturKaryawanPage() {
     const items = Array.isArray(data) ? data : data?.data || [];
     setUserList(items);
   };
+
+  const handleExportCSV = async () => {
+  try {
+    const response = await exportUsersCSV();
+    const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "users_export.csv");
+  } catch (err) {
+    setToast({ message: "Gagal mengekspor data", type: "error" });
+    console.error("Export error:", err);
+  }
+};
+
 
   useEffect(() => {
     reloadUsers().finally(() => setLoading(false));
@@ -145,11 +162,21 @@ function AturKaryawanPage() {
     setModalUser(null);
   };
 
-  const { searchTerm, setSearchTerm, filteredData } = useSearch(userList, [
-    "full_name",
-    "specialty",
-    "email",
-  ]);
+  const { searchTerm, setSearchTerm } = useSearch(userList, ["full_name"]);
+
+  const searchedUsers = useSearch(userList, ["full_name"]).filteredData;
+
+  const filteredUsers = searchedUsers.filter((user) => {
+    const statusMatch =
+      statusFilter === "all" ||
+      (statusFilter === "active" && user.active) ||
+      (statusFilter === "inactive" && !user.active);
+
+    const roleMatch =
+      roleFilter === "all" || user.role?.toLowerCase() === roleFilter;
+
+    return statusMatch && roleMatch;
+  });
 
 const columns = [
     { header: "Nama", accessor: "full_name" },
@@ -198,7 +225,33 @@ const columns = [
 
       <div className="p-5 w-full py-10">
         <h1 className="text-2xl font-bold mb-6">Daftar Karyawan</h1>
-        <SearchBar value={searchTerm} onChange={setSearchTerm} />
+          <div className="flex flex-wrap gap-4 items-center mb-5">
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Cari User"
+            />
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm h-10 mb-4"
+            >
+              <option value="all">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm h-10 mb-4"
+            >
+              <option value="all">Semua Peran</option>
+              <option value="admin">Admin</option>
+              <option value="pegawai">Pegawai</option>
+            </select>
+          </div>
 
         <div className="border-1 rounded-md border-gray-300 bg-white p-5">
           <div className="flex gap-4 mb-4">
@@ -209,10 +262,17 @@ const columns = [
               <PlusIcon className="w-4 h-4" />
               <span>Tambah Karyawan</span>
             </button>
+
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center text-green-700 font-semibold space-x-1 bg-transparent border border-green-700 py-2 px-4 rounded-md"
+            >
+              <span>Export CSV</span>
+            </button>
           </div>
 
           <div className="max-w-[1121px]">
-            <DataTable columns={columns} data={filteredData} showIndex={true} />
+            <DataTable columns={columns} data={filteredUsers} showIndex={true} />
           </div>
         </div>
       </div>

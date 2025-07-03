@@ -7,9 +7,12 @@ import PBFProductModal from "./PBFProductModal";
 import { apiClient } from "../../config/api";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Toast from "../../components/toast";
+import { useParams } from "react-router-dom";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import Select from "../../components/SelectComp";
 
 export default function PBFProductListPage() {
+  const [paymentStatus, setPaymentStatus] = useState("Belum Lunas");
   const [toast, setToast] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -23,6 +26,7 @@ export default function PBFProductListPage() {
   });
 
   const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
     const storedForm = JSON.parse(localStorage.getItem("pbfForm") || "null");
@@ -32,21 +36,71 @@ export default function PBFProductListPage() {
   }, []);
 
   useEffect(() => {
-    const storedBarangList = JSON.parse(localStorage.getItem("barangList") || "null");
-    if (storedBarangList) {
-      setBarangList(storedBarangList);
-    }
-  }, []);
+    const fetchData = async () => {
+      if (id) {
+        try {
+          const res = await apiClient.get(`/incoming-pbf/${id}`);
+          const data = res.data?.data;
+
+          if (data) {
+            setFormData({
+              order_date: data.order_date,
+              order_number: data.order_number,
+              supplier_id: data.supplier_id,
+              invoice_number: data.invoice_number,
+              transaction_type: data.transaction_type,
+              receipt_date: data.receipt_date,
+              payment_due_date: data.payment_due_date,
+              additional_notes: data.additional_notes,
+            });
+
+            setPaymentStatus(data.payment_status || "Belum Lunas");
+
+            const detailItems = data.details.map((item) => ({
+              product: {
+                id: item.product_id,
+                name: item.product_name,
+                code: item.product_code,
+                unit: { name: item.unit },
+              },
+              quantity: item.quantity,
+              purchase_price: item.purchase_price,
+              product_batch: item.batch_number,
+              expiry: item.expiry_date,
+            }));
+
+            setBarangList(detailItems);
+          }
+        } catch (error) {
+          console.error("Failed to fetch PBF detail:", error);
+          setToast({ message: "Gagal memuat data untuk edit", type: "error" });
+        }
+      } else {
+        const storedForm = JSON.parse(localStorage.getItem("pbfForm") || "null");
+        if (storedForm) setFormData(storedForm);
+
+        const storedBarangList = JSON.parse(localStorage.getItem("barangList") || "null");
+        if (storedBarangList) setBarangList(storedBarangList);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   useEffect(() => {
     localStorage.setItem("barangList", JSON.stringify(barangList));
   }, [barangList]);
 
   const handleKembali = () => {
-    localStorage.removeItem("pbfForm");
-    localStorage.removeItem("barangList");
-    navigate("/pbf-detail");
+    if (id) {
+      navigate(`/pbf-detail/${id}`);
+    } else {
+      localStorage.removeItem("pbfForm");
+      localStorage.removeItem("barangList");
+      navigate("/pbf-detail");
+    }
   };
+
 
   const handleEdit = (row) => {
     setEditingItem(row);
@@ -90,7 +144,7 @@ export default function PBFProductListPage() {
         return;
       }
 
-      const totalPurchase = calculateTotalPembelian();
+    const totalPurchase = calculateTotalPembelian();
 
     const formatDate = (date) => date ? new Date(date).toISOString().split("T")[0] : null;
     const user = JSON.parse(localStorage.getItem("user"));
@@ -107,7 +161,7 @@ export default function PBFProductListPage() {
       payment_due_date: formatDate(form.payment_due_date),
       additional_notes: form.additional_notes || "",
       total_purchase: totalPurchase,
-      payment_status: "BELUM LUNAS",
+      payment_status: paymentStatus,
       details: barangList.map((item) => ({
         product_id: item.product.id,
         product_code: item.product.code || "",
@@ -123,13 +177,17 @@ export default function PBFProductListPage() {
 
       console.log("Submitting payload:", JSON.stringify(payload, null, 2));
 
-      await apiClient.post("/incoming-pbf", payload);
-
-      setToast({ message: "Barang masuk berhasil disimpan!", type: "success" });
+      if (id) {
+          await apiClient.put(`/incoming-pbf/${id}`, payload);
+          setToast({ message: "Transaksi berhasil diperbarui", type: "success" });
+        } else {
+          await apiClient.post("/incoming-pbf", payload);
+          setToast({ message: "Barang masuk berhasil disimpan!", type: "success" });
+      }
 
       localStorage.removeItem("pbfForm");
       localStorage.removeItem("barangList");
-      navigate("/pbf-detail");
+      navigate("/riwayat-pbf");
 
     } catch (err) {
       console.error("Gagal menyimpan barang masuk:", err);
@@ -187,19 +245,30 @@ export default function PBFProductListPage() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold mb-6">Detail Pesanan Obat PBF</h1>
+        <h1 className="text-2xl font-bold mb-6">
+          {id ? "Edit Detail Pesanan Obat PBF" : "Detail Pesanan Obat PBF"}
+        </h1>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              onClick={() => {
+                setEditingItem(null);
+                setModalOpen(true);
+              }}
+            >
+              Tambah Barang
+            </Button>
 
-        <div className="mb-4">
-          <Button
-            className="mb-4"
-            onClick={() => {
-              setEditingItem(null);
-              setModalOpen(true);
-            }}
-          >
-            Tambah Barang
-          </Button>
-        </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-black">Status Pembayaran:</label>
+              <Select
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+              >
+                <option value="Lunas">Lunas</option>
+                <option value="Belum Lunas">Belum Lunas</option>
+              </Select>
+            </div>
+          </div>
 
         <div className="border border-gray-300 p-6 rounded-md bg-white min-h-[150px] w-full">
           {barangList.length === 0 ? (
@@ -255,11 +324,11 @@ export default function PBFProductListPage() {
         />
 
         <div className="flex justify-between mt-6 space-x-4">
-          <Button className="w-full" onClick={handleKembali}>
+          <button className="w-full bg-gray-200 border border-black text-black rounded-md py-2 hover:bg-gray-300 transition" onClick={handleKembali}>
             Kembali
-          </Button>
+          </button>
           <Button className="w-full" onClick={handleSave}>
-            Simpan
+            {id ? "Simpan Perubahan" : "Simpan"}
           </Button>
         </div>
       </div>

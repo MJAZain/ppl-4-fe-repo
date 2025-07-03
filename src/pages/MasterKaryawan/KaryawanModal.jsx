@@ -5,13 +5,14 @@ import Button from "../../components/buttonComp";
 import { apiClient } from "../../config/api";
 import Toast from "../../components/toast";
 import { getFriendlyErrorMessage } from "../../utils/errorHandler";
+import Select from "../../components/SelectComp";
 
 const fields = [
   { accessor: "full_name", label: "Nama Karyawan" },
   { accessor: "nip", label: "NIP", type:"phone" },
   { accessor: "phone", label: "No. Hp", type: "phone" },
   { accessor: "email", label: "Email" },
-  { accessor: "role", label: "Role", type:"select", options:["Admin", "Karyawan"] },
+  { accessor: "role", label: "Role", type:"select", options:["Admin", "Pegawai"] },
   { accessor: "password", label: "Password", type: "password" },
   { accessor: "reset_password", label: "Reset Password", type: "password" },
 ];
@@ -100,10 +101,9 @@ const handleSubmit = async () => {
             return (
               <div key={accessor} className="flex flex-col mb-4">
                 <label className="text-sm font-medium mb-1">{label}</label>
-                <select
+                <Select
                   value={form[accessor]}
                   onChange={handleChange(accessor)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="">Pilih {label}</option>
                   {options.map((opt) => (
@@ -111,7 +111,7 @@ const handleSubmit = async () => {
                       {opt}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             );
           }
