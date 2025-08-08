@@ -1,6 +1,6 @@
 {
   "name": "ppl-4-fe-repo",
-  "proxy": "http://localhost:8080",
+  "proxy": "https://pbbx4w2b-8080.asse.devtunnels.ms",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -19,6 +19,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
+    "victory": "^37.3.6",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
